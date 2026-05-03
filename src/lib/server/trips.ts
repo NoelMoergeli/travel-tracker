@@ -6,6 +6,7 @@ import { getDb } from '$lib/db/mongo';
 import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
 import { TRIPS_COLLECTION, type LegacyTripPhoto, type StoredTripPhoto, type Trip, type TripPhoto } from '$lib/models/trip';
 import { PHOTO_ALLOWED_MIME_TYPES, PHOTO_CAPTION_MAX_LENGTH, PHOTO_MAX_BYTES, PHOTO_MAX_PER_TRIP } from '$lib/photos';
+import type { TripFieldErrors, TripFormValues } from '$lib/trip-validation';
 import { uploadImages } from './uploads';
 
 export const TripFormSchema = z
@@ -21,15 +22,6 @@ export const TripFormSchema = z
 		path: ['dateTo']
 	});
 
-export interface TripFormValues {
-	countryCode: string;
-	placeName: string;
-	dateFrom: string;
-	dateTo: string;
-	notes: string;
-}
-
-export type TripFieldErrors = Partial<Record<keyof TripFormValues | 'photos', string>>;
 const tripErrorFields = new Set<keyof TripFieldErrors>([
 	'countryCode',
 	'placeName',

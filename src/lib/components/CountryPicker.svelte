@@ -7,6 +7,7 @@
 		label?: string;
 		name?: string;
 		placeholder?: string;
+		onValidate?: (countryCode: string, query: string) => void;
 	}
 
 	let {
@@ -14,7 +15,8 @@
 		error = '',
 		label = 'Country',
 		name = 'countryCode',
-		placeholder = 'Search by country or code'
+		placeholder = 'Search by country or code',
+		onValidate
 	}: Props = $props();
 
 	const countries = getCountryOptions();
@@ -85,6 +87,10 @@
 
 		selectedCode = exactCountry?.code ?? '';
 	}
+
+	function validateSelection(): void {
+		onValidate?.(selectedCode, query);
+	}
 </script>
 
 <div class="field country-picker">
@@ -99,6 +105,7 @@
 		placeholder={placeholder}
 		required
 		oninput={updateQuery}
+		onblur={validateSelection}
 	/>
 
 	{#if error}
