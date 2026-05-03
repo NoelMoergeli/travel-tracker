@@ -1,10 +1,14 @@
+import { randomUUID } from 'node:crypto';
 import { ObjectId } from 'mongodb';
 import { z } from 'zod';
 import { getCountryName } from '$lib/countries';
 import { getDb } from '$lib/db/mongo';
-import type { PublicTrip } from '$lib/models/public';
-import { TRIPS_COLLECTION, type Trip } from '$lib/models/trip';
+import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
+import { TRIPS_COLLECTION, type Trip, type TripPhoto } from '$lib/models/trip';
 import { uploadImages } from './uploads';
+
+const PHOTO_CAPTION_MAX_LENGTH = 160;
+const IMAGE_URL_EXTENSIONS = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
 
 export const TripFormSchema = z
 	.object({
@@ -27,6 +31,40 @@ export interface TripFormValues {
 	notes: string;
 }
 
+export const TripPhotoFormSchema = z.object({
+	id: z.string().trim().optional(),
+	url: z
+		.string()
+		.trim()
+		.min(1, 'Photo URL is required.')
+		.refine(isValidImageUrl, 'Use a direct image URL ending in AVIF, GIF, JPG, PNG, SVG, or WebP.'),
+	caption: z.string().trim().max(PHOTO_CAPTION_MAX_LENGTH, 'Photo captions must be 160 characters or fewer.').optional(),
+	uploadedAt: z.string().trim().optional()
+});
+
+function isValidImageUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return ['http:', 'https:'].includes(url.protocol) && IMAGE_URL_EXTENSIONS.test(url.pathname);
+	} catch {
+		return false;
+	}
+}
+
+function normalizeTripPhotos(photos: Trip['photos']): PublicTripPhoto[] {
+	return (photos ?? []).map((photo) => ({
+		id: photo.id,
+		url: photo.url,
+		caption: photo.caption ?? '',
+		uploadedAt: dateToIsoString(photo.uploadedAt)
+	}));
+}
+
+function dateToIsoString(value: Date): string {
+	const date = value instanceof Date ? value : new Date(value);
+	return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
 export function tripToPublic(trip: Trip): PublicTrip {
 	return {
 		id: trip._id?.toString() ?? '',
@@ -36,7 +74,8 @@ export function tripToPublic(trip: Trip): PublicTrip {
 		dateFrom: trip.dateFrom,
 		dateTo: trip.dateTo ?? '',
 		notes: trip.notes ?? '',
-		images: trip.images ?? []
+		images: trip.images ?? [],
+		photos: normalizeTripPhotos(trip.photos)
 	};
 }
 
@@ -62,6 +101,41 @@ export function existingImagesFromForm(formData: FormData): string[] {
 		.filter((value): value is string => typeof value === 'string' && value.length > 0);
 }
 
+export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
+	const ids = formData.getAll('photoIds');
+	const urls = formData.getAll('photoUrls');
+	const captions = formData.getAll('photoCaptions');
+	const uploadedAts = formData.getAll('photoUploadedAts');
+
+	return urls
+		.map((value, index) => ({
+			id: String(ids[index] ?? ''),
+			url: String(value ?? ''),
+			caption: String(captions[index] ?? ''),
+			uploadedAt: String(uploadedAts[index] ?? '')
+		}))
+		.filter((photo) => photo.id || photo.url || photo.caption || photo.uploadedAt);
+}
+
+export function photosFromForm(formData: FormData): TripPhoto[] {
+	return photoValuesFromForm(formData).map((photo) => {
+		const result = TripPhotoFormSchema.safeParse(photo);
+
+		if (!result.success) {
+			throw new Error(result.error.issues[0]?.message ?? 'Invalid photo details.');
+		}
+
+		const uploadedAt = result.data.uploadedAt ? new Date(result.data.uploadedAt) : new Date();
+
+		return {
+			id: result.data.id || randomUUID(),
+			url: result.data.url,
+			caption: result.data.caption || undefined,
+			uploadedAt: Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt
+		};
+	});
+}
+
 export async function loadTripForUser(userId: string, tripId: string): Promise<PublicTrip | null> {
 	if (!ObjectId.isValid(tripId)) return null;
 
@@ -84,6 +158,7 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 
 	const db = await getDb();
 	const images = await uploadImages(db, imagesFromForm(formData));
+	const photos = photosFromForm(formData);
 	const now = new Date();
 
 	await db.collection<Trip>(TRIPS_COLLECTION).insertOne({
@@ -94,6 +169,7 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 		dateTo: result.data.dateTo || undefined,
 		notes: result.data.notes || undefined,
 		images,
+		...(photos.length ? { photos } : {}),
 		createdAt: now,
 		updatedAt: now
 	});
@@ -112,6 +188,17 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 	const db = await getDb();
 	const newImages = await uploadImages(db, imagesFromForm(formData));
 	const images = [...existingImagesFromForm(formData), ...newImages];
+	const photos = photosFromForm(formData);
+	const tripUpdates = {
+		countryCode: result.data.countryCode.toUpperCase(),
+		placeName: result.data.placeName,
+		dateFrom: result.data.dateFrom,
+		dateTo: result.data.dateTo || undefined,
+		notes: result.data.notes || undefined,
+		images,
+		...(photos.length ? { photos } : {}),
+		updatedAt: new Date()
+	};
 
 	const update = await db.collection<Trip>(TRIPS_COLLECTION).updateOne(
 		{
@@ -119,15 +206,8 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 			userId: new ObjectId(userId)
 		},
 		{
-			$set: {
-				countryCode: result.data.countryCode.toUpperCase(),
-				placeName: result.data.placeName,
-				dateFrom: result.data.dateFrom,
-				dateTo: result.data.dateTo || undefined,
-				notes: result.data.notes || undefined,
-				images,
-				updatedAt: new Date()
-			}
+			$set: tripUpdates,
+			...(!photos.length ? { $unset: { photos: '' } } : {})
 		}
 	);
 

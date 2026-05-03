@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { loadTripForUser, tripValuesFromForm, updateTrip } from '$lib/server/trips';
+import { loadTripForUser, photoValuesFromForm, tripValuesFromForm, updateTrip } from '$lib/server/trips';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) throw redirect(302, '/login');
@@ -26,7 +26,8 @@ export const actions: Actions = {
 				values: tripValuesFromForm(formData),
 				images: formData
 					.getAll('existingImages')
-					.filter((value): value is string => typeof value === 'string')
+					.filter((value): value is string => typeof value === 'string'),
+				photos: photoValuesFromForm(formData)
 			});
 		}
 
