@@ -41,6 +41,7 @@
 	const emptyTripMessage = $derived(
 		selectedCountry ? `No trips recorded in ${selectedCountry.name}.` : 'Start by recording your first trip.'
 	);
+	const recordTripHref = $derived(selectedCountry ? `/trip/new?country=${selectedCountry.code}` : undefined);
 
 	function selectCountry(country: CountryOption): void {
 		selectedCountry = country;
@@ -87,6 +88,7 @@
 		<TripList
 			trips={visibleTrips}
 			emptyMessage={emptyTripMessage}
+			{recordTripHref}
 			onViewGallery={(trip) => (galleryTrip = trip)}
 			onDelete={(trip) => (deleteCandidate = trip)}
 		/>
@@ -96,7 +98,6 @@
 		<CountrySearch
 			{query}
 			{searchResults}
-			{selectedCountry}
 			onQueryChange={updateCountryQuery}
 			onSelectCountry={selectCountry}
 		/>

@@ -4,7 +4,6 @@
 	interface Props {
 		query: string;
 		searchResults: CountryOption[];
-		selectedCountry: CountryOption | null;
 		onQueryChange: (query: string) => void;
 		onSelectCountry: (country: CountryOption) => void;
 	}
@@ -12,7 +11,6 @@
 	let {
 		query,
 		searchResults,
-		selectedCountry,
 		onQueryChange,
 		onSelectCountry
 	}: Props = $props();
@@ -43,13 +41,4 @@
 		</ul>
 	{/if}
 
-	{#if selectedCountry}
-		<div class="selected-country">
-			<p>Selected country</p>
-			<strong>{selectedCountry.name} ({selectedCountry.code})</strong>
-			<div class="selected-country-actions">
-				<a class="button button-primary" href={`/trip/new?country=${selectedCountry.code}`}>Record Trip</a>
-			</div>
-		</div>
-	{/if}
 </div>
