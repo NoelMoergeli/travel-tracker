@@ -9,13 +9,14 @@
 
 	interface Props {
 		photos?: PublicTripPhoto[];
+		error?: string;
 	}
 
 	interface PhotoDraft extends PublicTripPhoto {
 		isBroken?: boolean;
 	}
 
-	let { photos = [] }: Props = $props();
+	let { photos = [], error = '' }: Props = $props();
 
 	let photoRows = $state<PhotoDraft[]>([]);
 	let photoFile = $state<File | null>(null);
@@ -208,7 +209,7 @@
 		</div>
 	</div>
 
-	{#if message}
-		<p class="error">{message}</p>
+	{#if message || error}
+		<p class="field-error">{message || error}</p>
 	{/if}
 </section>

@@ -1,6 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { createTrip, photoValuesFromForm, tripValuesFromForm } from '$lib/server/trips';
+import {
+	TripValidationError,
+	createTrip,
+	photoValuesFromForm,
+	tripValuesFromForm
+} from '$lib/server/trips';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) throw redirect(302, '/login');
@@ -19,8 +24,11 @@ export const actions: Actions = {
 		try {
 			await createTrip(locals.user.id, formData);
 		} catch (error) {
+			const validationErrors = error instanceof TripValidationError ? error.errors : {};
+
 			return fail(400, {
 				message: error instanceof Error ? error.message : 'Unable to create trip.',
+				errors: validationErrors,
 				values: tripValuesFromForm(formData),
 				photos: photoValuesFromForm(formData)
 			});

@@ -3,6 +3,7 @@
 
 	interface Props {
 		value?: string;
+		error?: string;
 		label?: string;
 		name?: string;
 		placeholder?: string;
@@ -10,6 +11,7 @@
 
 	let {
 		value = '',
+		error = '',
 		label = 'Country',
 		name = 'countryCode',
 		placeholder = 'Search by country or code'
@@ -98,6 +100,10 @@
 		required
 		oninput={updateQuery}
 	/>
+
+	{#if error}
+		<p class="field-error">{error}</p>
+	{/if}
 
 	{#if searchResults.length}
 		<ul class="search-results" aria-label={`${label} search results`}>

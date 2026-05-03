@@ -29,6 +29,26 @@ export interface TripFormValues {
 	notes: string;
 }
 
+export type TripFieldErrors = Partial<Record<keyof TripFormValues | 'photos', string>>;
+const tripErrorFields = new Set<keyof TripFieldErrors>([
+	'countryCode',
+	'placeName',
+	'dateFrom',
+	'dateTo',
+	'notes',
+	'photos'
+]);
+
+export class TripValidationError extends Error {
+	constructor(
+		message: string,
+		public errors: TripFieldErrors
+	) {
+		super(message);
+		this.name = 'TripValidationError';
+	}
+}
+
 export const TripPhotoFormSchema = z
 	.object({
 		id: z.string().trim().optional(),
@@ -86,6 +106,20 @@ function isLegacyTripPhoto(photo: StoredTripPhoto): photo is LegacyTripPhoto {
 function dateToIsoString(value: Date): string {
 	const date = value instanceof Date ? value : new Date(value);
 	return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+function fieldErrorsFromZod(error: z.ZodError): TripFieldErrors {
+	const errors: TripFieldErrors = {};
+
+	for (const issue of error.issues) {
+		const field = issue.path[0];
+		if (typeof field !== 'string' || !tripErrorFields.has(field as keyof TripFieldErrors)) continue;
+		const key = field as keyof TripFieldErrors;
+		if (errors[key]) continue;
+		errors[key] = issue.message;
+	}
+
+	return errors;
 }
 
 export function tripToPublic(trip: Trip): PublicTrip {
@@ -161,14 +195,17 @@ export function photosFromForm(formData: FormData): StoredTripPhoto[] {
 	const photoValues = photoValuesFromForm(formData);
 
 	if (photoValues.length > PHOTO_MAX_PER_TRIP) {
-		throw new Error(`Trips can have up to ${PHOTO_MAX_PER_TRIP} photos.`);
+		throw new TripValidationError(`Trips can have up to ${PHOTO_MAX_PER_TRIP} photos.`, {
+			photos: `Trips can have up to ${PHOTO_MAX_PER_TRIP} photos.`
+		});
 	}
 
 	return photoValues.map((photo) => {
 		const result = TripPhotoFormSchema.safeParse(photo);
 
 		if (!result.success) {
-			throw new Error(result.error.issues[0]?.message ?? 'Invalid photo details.');
+			const message = result.error.issues[0]?.message ?? 'Invalid photo details.';
+			throw new TripValidationError(message, { photos: message });
 		}
 
 		const uploadedAt = result.data.uploadedAt ? new Date(result.data.uploadedAt) : new Date();
@@ -212,7 +249,8 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 	const result = TripFormSchema.safeParse(values);
 
 	if (!result.success) {
-		throw new Error(result.error.issues[0]?.message ?? 'Invalid trip details.');
+		const message = result.error.issues[0]?.message ?? 'Invalid trip details.';
+		throw new TripValidationError(message, fieldErrorsFromZod(result.error));
 	}
 
 	const db = await getDb();
@@ -241,7 +279,8 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 	const result = TripFormSchema.safeParse(values);
 
 	if (!result.success) {
-		throw new Error(result.error.issues[0]?.message ?? 'Invalid trip details.');
+		const message = result.error.issues[0]?.message ?? 'Invalid trip details.';
+		throw new TripValidationError(message, fieldErrorsFromZod(result.error));
 	}
 
 	const db = await getDb();

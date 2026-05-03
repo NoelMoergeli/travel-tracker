@@ -14,6 +14,7 @@
 	});
 
 	const photos = $derived(form?.photos ?? []);
+	const errors = $derived(form?.errors ?? {});
 </script>
 
 <section class="form-page">
@@ -25,21 +26,30 @@
 
 		<form method="POST" enctype="multipart/form-data">
 			<div class="form-grid">
-				<CountryPicker value={values.countryCode} />
+				<CountryPicker value={values.countryCode} error={errors.countryCode} />
 
 				<label class="field">
 					Place or city
 					<input class="input" name="placeName" value={values.placeName} required />
+					{#if errors.placeName}
+						<p class="field-error">{errors.placeName}</p>
+					{/if}
 				</label>
 
 				<label class="field">
 					Date from
 					<input class="input" name="dateFrom" type="date" value={values.dateFrom} required />
+					{#if errors.dateFrom}
+						<p class="field-error">{errors.dateFrom}</p>
+					{/if}
 				</label>
 
 				<label class="field">
 					Date to
 					<input class="input" name="dateTo" type="date" value={values.dateTo} />
+					{#if errors.dateTo}
+						<p class="field-error">{errors.dateTo}</p>
+					{/if}
 				</label>
 			</div>
 
@@ -48,14 +58,14 @@
 				<textarea class="input textarea" name="notes">{values.notes}</textarea>
 			</label>
 
-			<PhotoManager {photos} />
+			<PhotoManager {photos} error={errors.photos} />
 
 			<div class="form-actions">
 				<a class="button button-secondary" href="/dashboard">Cancel</a>
 				<button class="button button-primary" type="submit">Save Trip</button>
 			</div>
 
-			{#if form?.message}
+			{#if form?.message && !Object.keys(errors).length}
 				<p class="error">{form.message}</p>
 			{/if}
 		</form>
