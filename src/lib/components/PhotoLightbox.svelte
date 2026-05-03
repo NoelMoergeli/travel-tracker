@@ -9,6 +9,7 @@
 
 	let { photos, initialIndex = 0, onClose }: Props = $props();
 	let currentIndex = $state(0);
+	let brokenPhotoIds = $state<string[]>([]);
 	let appliedInitialIndex = -1;
 
 	const currentPhoto = $derived(photos[currentIndex]);
@@ -42,6 +43,11 @@
 			showNext();
 		}
 	}
+
+	function markPhotoBroken(photoId: string): void {
+		if (brokenPhotoIds.includes(photoId)) return;
+		brokenPhotoIds = [...brokenPhotoIds, photoId];
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -62,7 +68,11 @@
 				</button>
 			{/if}
 
-			<img src={currentPhoto.url} alt={currentPhoto.caption} />
+			{#if brokenPhotoIds.includes(currentPhoto.id)}
+				<div class="photo-lightbox-fallback">Image unavailable</div>
+			{:else}
+				<img src={currentPhoto.url} alt={currentPhoto.caption} onerror={() => markPhotoBroken(currentPhoto.id)} />
+			{/if}
 
 			<div class="photo-lightbox-caption">
 				{#if currentPhoto.caption}

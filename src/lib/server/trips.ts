@@ -5,10 +5,8 @@ import { getCountryName } from '$lib/countries';
 import { getDb } from '$lib/db/mongo';
 import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
 import { TRIPS_COLLECTION, type Trip, type TripPhoto } from '$lib/models/trip';
+import { PHOTO_CAPTION_MAX_LENGTH, isValidImageUrl } from '$lib/photos';
 import { uploadImages } from './uploads';
-
-const PHOTO_CAPTION_MAX_LENGTH = 160;
-const IMAGE_URL_EXTENSIONS = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
 
 export const TripFormSchema = z
 	.object({
@@ -42,22 +40,15 @@ export const TripPhotoFormSchema = z.object({
 	uploadedAt: z.string().trim().optional()
 });
 
-function isValidImageUrl(value: string): boolean {
-	try {
-		const url = new URL(value);
-		return ['http:', 'https:'].includes(url.protocol) && IMAGE_URL_EXTENSIONS.test(url.pathname);
-	} catch {
-		return false;
-	}
-}
-
 function normalizeTripPhotos(photos: Trip['photos']): PublicTripPhoto[] {
-	return (photos ?? []).map((photo) => ({
-		id: photo.id,
-		url: photo.url,
-		caption: photo.caption ?? '',
-		uploadedAt: dateToIsoString(photo.uploadedAt)
-	}));
+	return (photos ?? [])
+		.filter((photo) => photo.id && photo.url)
+		.map((photo) => ({
+			id: photo.id,
+			url: photo.url,
+			caption: photo.caption ?? '',
+			uploadedAt: dateToIsoString(photo.uploadedAt)
+		}));
 }
 
 function dateToIsoString(value: Date): string {

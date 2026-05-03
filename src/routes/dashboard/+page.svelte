@@ -17,6 +17,7 @@
 	let galleryTrip = $state<PublicTrip | null>(null);
 	let lightboxPhotos = $state<PublicTripPhoto[]>([]);
 	let lightboxIndex = $state(0);
+	let brokenPreviewPhotoIds = $state<string[]>([]);
 
 	const searchResults = $derived.by(() => {
 		const normalized = query.trim().toLowerCase();
@@ -59,6 +60,11 @@
 		lightboxPhotos = [];
 		lightboxIndex = 0;
 	}
+
+	function markPreviewBroken(photoId: string): void {
+		if (brokenPreviewPhotoIds.includes(photoId)) return;
+		brokenPreviewPhotoIds = [...brokenPreviewPhotoIds, photoId];
+	}
 </script>
 
 <section class="dashboard-page">
@@ -75,7 +81,15 @@
 					<article class="trip-card">
 						{#if trip.photos.length}
 							<button class="trip-photo-preview" type="button" onclick={() => (galleryTrip = trip)}>
-								<img src={trip.photos[0].url} alt={trip.photos[0].caption || `${trip.placeName} photo`} />
+								{#if brokenPreviewPhotoIds.includes(trip.photos[0].id)}
+									<span class="trip-photo-fallback">Image unavailable</span>
+								{:else}
+									<img
+										src={trip.photos[0].url}
+										alt={trip.photos[0].caption || `${trip.placeName} photo`}
+										onerror={() => markPreviewBroken(trip.photos[0].id)}
+									/>
+								{/if}
 							</button>
 						{/if}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicTripPhoto } from '$lib/models/public';
+	import { PHOTO_CAPTION_MAX_LENGTH, isValidImageUrl } from '$lib/photos';
 
 	interface Props {
 		photos?: PublicTripPhoto[];
@@ -9,15 +10,13 @@
 		isBroken?: boolean;
 	}
 
-	const CAPTION_MAX_LENGTH = 160;
-	const IMAGE_URL_EXTENSIONS = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
-
 	let { photos = [] }: Props = $props();
 
 	let photoRows = $state<PhotoDraft[]>([]);
 	let photoUrl = $state('');
 	let photoCaption = $state('');
 	let message = $state('');
+	let removedPhoto = $state<PhotoDraft | null>(null);
 	let appliedPhotos = '';
 
 	$effect(() => {
@@ -42,8 +41,8 @@
 			return;
 		}
 
-		if (caption.length > CAPTION_MAX_LENGTH) {
-			message = `Captions must be ${CAPTION_MAX_LENGTH} characters or fewer.`;
+		if (caption.length > PHOTO_CAPTION_MAX_LENGTH) {
+			message = `Captions must be ${PHOTO_CAPTION_MAX_LENGTH} characters or fewer.`;
 			return;
 		}
 
@@ -58,21 +57,25 @@
 		];
 		photoUrl = '';
 		photoCaption = '';
+		removedPhoto = null;
 		message = '';
 	}
 
 	function removePhoto(photoId: string): void {
+		removedPhoto = photoRows.find((photo) => photo.id === photoId) ?? null;
 		photoRows = photoRows.filter((photo) => photo.id !== photoId);
-		message = '';
+		message = 'Photo removed. Save changes to confirm, or undo before saving.';
 	}
 
-	function isValidImageUrl(value: string): boolean {
-		try {
-			const url = new URL(value);
-			return ['http:', 'https:'].includes(url.protocol) && IMAGE_URL_EXTENSIONS.test(url.pathname);
-		} catch {
-			return false;
+	function undoRemovePhoto(): void {
+		if (!removedPhoto) return;
+
+		if (!photoRows.some((photo) => photo.id === removedPhoto?.id)) {
+			photoRows = [...photoRows, removedPhoto];
 		}
+
+		removedPhoto = null;
+		message = '';
 	}
 </script>
 
@@ -99,7 +102,7 @@
 					<div>
 						<p>{photo.caption || 'No caption'}</p>
 						<button class="button button-danger" type="button" onclick={() => removePhoto(photo.id)}>
-							Delete Photo
+							Remove Photo
 						</button>
 					</div>
 				</article>
@@ -125,13 +128,18 @@
 			<input
 				class="input"
 				bind:value={photoCaption}
-				maxlength={CAPTION_MAX_LENGTH}
+				maxlength={PHOTO_CAPTION_MAX_LENGTH}
 				placeholder="Optional caption"
 			/>
 		</label>
 	</div>
 
-	<button class="button button-secondary" type="button" onclick={addPhoto}>Add Photo</button>
+	<div class="photo-manager-actions">
+		<button class="button button-secondary" type="button" onclick={addPhoto}>Add Photo</button>
+		{#if removedPhoto}
+			<button class="button button-secondary" type="button" onclick={undoRemovePhoto}>Undo Remove</button>
+		{/if}
+	</div>
 
 	{#if message}
 		<p class="error">{message}</p>

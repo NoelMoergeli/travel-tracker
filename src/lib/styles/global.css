@@ -298,6 +298,15 @@ input {
 	transform: scale(1.03);
 }
 
+.trip-photo-fallback {
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	display: grid;
+	place-items: center;
+	color: var(--color-muted);
+	font-weight: 800;
+}
+
 .trip-card h2,
 .empty-state h2 {
 	margin: 4px 0;
@@ -523,6 +532,12 @@ input {
 	gap: 16px;
 }
 
+.photo-manager-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
 .photo-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -654,6 +669,18 @@ input {
 	object-fit: contain;
 	border-radius: var(--radius);
 	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+}
+
+.photo-lightbox-fallback {
+	width: min(720px, 100%);
+	aspect-ratio: 16 / 9;
+	display: grid;
+	place-items: center;
+	border: 1px dashed rgba(255, 255, 255, 0.42);
+	border-radius: var(--radius);
+	background: rgba(255, 255, 255, 0.12);
+	color: white;
+	font-weight: 800;
 }
 
 .photo-lightbox-close,
