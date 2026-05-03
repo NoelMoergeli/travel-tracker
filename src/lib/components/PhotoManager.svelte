@@ -13,11 +13,12 @@
 	let { photos = [] }: Props = $props();
 
 	let photoRows = $state<PhotoDraft[]>([]);
-	let photoUrl = $state('');
+	let photoFile = $state<File | null>(null);
 	let photoCaption = $state('');
 	let message = $state('');
 	let removedPhoto = $state<PhotoDraft | null>(null);
 	let appliedPhotos = '';
+	let fileInput = $state<HTMLInputElement>();
 
 	$effect(() => {
 		const nextPhotos = JSON.stringify(photos);
@@ -27,12 +28,17 @@
 		appliedPhotos = nextPhotos;
 	});
 
-	function addPhoto(): void {
-		const url = photoUrl.trim();
+	function handleFileChange(event: Event): void {
+		const input = event.currentTarget as HTMLInputElement;
+		photoFile = input.files?.[0] ?? null;
+		message = '';
+	}
+
+	async function addPhoto(): Promise<void> {
 		const caption = photoCaption.trim();
 
-		if (!url) {
-			message = 'Photo URL is required.';
+		if (!photoFile) {
+			message = 'Choose an image file first.';
 			return;
 		}
 
@@ -45,17 +51,17 @@
 			...photoRows,
 			{
 				id: crypto.randomUUID(),
-				filename: 'External image',
-				mimeType: '',
-				size: 0,
-				data: '',
+				filename: photoFile.name,
+				mimeType: photoFile.type,
+				size: photoFile.size,
+				data: await fileToBase64(photoFile),
 				caption,
 				uploadedAt: new Date().toISOString(),
-				legacyUrl: url
 			}
 		];
-		photoUrl = '';
+		photoFile = null;
 		photoCaption = '';
+		if (fileInput) fileInput.value = '';
 		removedPhoto = null;
 		message = '';
 	}
@@ -75,6 +81,18 @@
 
 		removedPhoto = null;
 		message = '';
+	}
+
+	async function fileToBase64(file: File): Promise<string> {
+		const bytes = new Uint8Array(await file.arrayBuffer());
+		let binary = '';
+		const chunkSize = 0x8000;
+
+		for (let index = 0; index < bytes.length; index += chunkSize) {
+			binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+		}
+
+		return btoa(binary);
 	}
 </script>
 
@@ -118,12 +136,13 @@
 
 	<div class="photo-add-grid">
 		<label class="field">
-			Photo URL
+			Photo file
 			<input
-				class="input"
-				type="url"
-				bind:value={photoUrl}
-				placeholder="https://example.com/photo.jpg"
+				bind:this={fileInput}
+				class="input file-input"
+				type="file"
+				accept="image/jpeg,image/png,image/webp"
+				onchange={handleFileChange}
 			/>
 		</label>
 
