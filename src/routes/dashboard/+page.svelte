@@ -137,6 +137,7 @@
 {/if}
 
 {#if galleryTrip}
+	{@const activeGalleryTrip = galleryTrip}
 	<div class="modal-layer">
 		<button
 			class="modal-backdrop"
@@ -147,15 +148,18 @@
 		<dialog open class="modal gallery-modal" aria-labelledby="gallery-title">
 			<div class="modal-header">
 				<div>
-					<p class="eyebrow">{galleryTrip.countryName}</p>
-					<h2 id="gallery-title">{galleryTrip.placeName} Gallery</h2>
+					<p class="eyebrow">{activeGalleryTrip.countryName}</p>
+					<h2 id="gallery-title">{activeGalleryTrip.placeName} Gallery</h2>
 				</div>
 				<button class="button button-secondary" type="button" onclick={() => (galleryTrip = null)}>
 					Close
 				</button>
 			</div>
 
-			<PhotoGrid photos={galleryTrip.photos} onSelectPhoto={(index) => openLightbox(galleryTrip.photos, index)} />
+			<PhotoGrid
+				photos={activeGalleryTrip.photos}
+				onSelectPhoto={(index) => openLightbox(activeGalleryTrip.photos, index)}
+			/>
 		</dialog>
 	</div>
 {/if}
