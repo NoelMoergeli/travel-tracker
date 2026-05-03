@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { getCountryName } from '$lib/countries';
 import { getDb } from '$lib/db/mongo';
 import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
-import { TRIPS_COLLECTION, type Trip, type TripPhoto } from '$lib/models/trip';
-import { PHOTO_CAPTION_MAX_LENGTH, isValidImageUrl } from '$lib/photos';
+import { TRIPS_COLLECTION, type LegacyTripPhoto, type StoredTripPhoto, type Trip, type TripPhoto } from '$lib/models/trip';
+import { PHOTO_ALLOWED_MIME_TYPES, PHOTO_CAPTION_MAX_LENGTH } from '$lib/photos';
 import { uploadImages } from './uploads';
 
 export const TripFormSchema = z
@@ -31,24 +31,36 @@ export interface TripFormValues {
 
 export const TripPhotoFormSchema = z.object({
 	id: z.string().trim().optional(),
-	url: z
-		.string()
-		.trim()
-		.min(1, 'Photo URL is required.')
-		.refine(isValidImageUrl, 'Use a direct image URL ending in AVIF, GIF, JPG, PNG, SVG, or WebP.'),
+	filename: z.string().trim().optional(),
+	mimeType: z.string().trim().optional(),
+	size: z.coerce.number().optional(),
+	data: z.string().trim().optional(),
 	caption: z.string().trim().max(PHOTO_CAPTION_MAX_LENGTH, 'Photo captions must be 160 characters or fewer.').optional(),
-	uploadedAt: z.string().trim().optional()
+	uploadedAt: z.string().trim().optional(),
+	legacyUrl: z.string().trim().optional()
 });
 
 function normalizeTripPhotos(photos: Trip['photos']): PublicTripPhoto[] {
 	return (photos ?? [])
-		.filter((photo) => photo.id && photo.url)
+		.filter((photo) => photo.id && (isTripPhoto(photo) || isLegacyTripPhoto(photo)))
 		.map((photo) => ({
 			id: photo.id,
-			url: photo.url,
+			filename: isTripPhoto(photo) ? photo.filename : 'External image',
+			mimeType: isTripPhoto(photo) ? photo.mimeType : '',
+			size: isTripPhoto(photo) ? photo.size : 0,
+			data: isTripPhoto(photo) ? photo.data : '',
 			caption: photo.caption ?? '',
-			uploadedAt: dateToIsoString(photo.uploadedAt)
+			uploadedAt: dateToIsoString(photo.uploadedAt),
+			...(isLegacyTripPhoto(photo) ? { legacyUrl: photo.url } : {})
 		}));
+}
+
+function isTripPhoto(photo: StoredTripPhoto): photo is TripPhoto {
+	return 'data' in photo && 'mimeType' in photo && 'filename' in photo;
+}
+
+function isLegacyTripPhoto(photo: StoredTripPhoto): photo is LegacyTripPhoto {
+	return 'url' in photo;
 }
 
 function dateToIsoString(value: Date): string {
@@ -94,21 +106,38 @@ export function existingImagesFromForm(formData: FormData): string[] {
 
 export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
 	const ids = formData.getAll('photoIds');
-	const urls = formData.getAll('photoUrls');
+	const filenames = formData.getAll('photoFilenames');
+	const mimeTypes = formData.getAll('photoMimeTypes');
+	const sizes = formData.getAll('photoSizes');
+	const data = formData.getAll('photoData');
 	const captions = formData.getAll('photoCaptions');
 	const uploadedAts = formData.getAll('photoUploadedAts');
+	const legacyUrls = formData.getAll('photoLegacyUrls').length
+		? formData.getAll('photoLegacyUrls')
+		: formData.getAll('photoUrls');
 
-	return urls
-		.map((value, index) => ({
+	const rowCount = Math.max(
+		filenames.length,
+		data.length,
+		captions.length,
+		legacyUrls.length
+	);
+
+	return Array.from({ length: rowCount })
+		.map((_, index) => ({
 			id: String(ids[index] ?? ''),
-			url: String(value ?? ''),
+			filename: String(filenames[index] ?? ''),
+			mimeType: String(mimeTypes[index] ?? ''),
+			size: Number(sizes[index] ?? 0),
+			data: String(data[index] ?? ''),
 			caption: String(captions[index] ?? ''),
-			uploadedAt: String(uploadedAts[index] ?? '')
+			uploadedAt: String(uploadedAts[index] ?? ''),
+			legacyUrl: String(legacyUrls[index] ?? '') || undefined
 		}))
-		.filter((photo) => photo.id || photo.url || photo.caption || photo.uploadedAt);
+		.filter((photo) => photo.id || photo.data || photo.legacyUrl || photo.caption || photo.uploadedAt);
 }
 
-export function photosFromForm(formData: FormData): TripPhoto[] {
+export function photosFromForm(formData: FormData): StoredTripPhoto[] {
 	return photoValuesFromForm(formData).map((photo) => {
 		const result = TripPhotoFormSchema.safeParse(photo);
 
@@ -117,12 +146,27 @@ export function photosFromForm(formData: FormData): TripPhoto[] {
 		}
 
 		const uploadedAt = result.data.uploadedAt ? new Date(result.data.uploadedAt) : new Date();
+		const normalizedUploadedAt = Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt;
+
+		if (result.data.legacyUrl && !result.data.data) {
+			return {
+				id: result.data.id || randomUUID(),
+				url: result.data.legacyUrl,
+				caption: result.data.caption || undefined,
+				uploadedAt: normalizedUploadedAt
+			};
+		}
 
 		return {
 			id: result.data.id || randomUUID(),
-			url: result.data.url,
+			filename: result.data.filename || 'photo',
+			mimeType: result.data.mimeType && PHOTO_ALLOWED_MIME_TYPES.includes(result.data.mimeType as (typeof PHOTO_ALLOWED_MIME_TYPES)[number])
+				? result.data.mimeType
+				: 'image/jpeg',
+			size: result.data.size ?? 0,
+			data: result.data.data ?? '',
 			caption: result.data.caption || undefined,
-			uploadedAt: Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt
+			uploadedAt: normalizedUploadedAt
 		};
 	});
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicTripPhoto } from '$lib/models/public';
+	import { photoSource } from '$lib/photos';
 
 	interface Props {
 		photos: PublicTripPhoto[];
@@ -31,7 +32,7 @@
 				aria-label={photo.caption ? `Open photo: ${photo.caption}` : 'Open photo'}
 				onclick={() => onSelectPhoto?.(index)}
 			>
-				<img src={photo.url} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
+				<img src={photoSource(photo)} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
 				{#if photo.isBroken}
 					<span class="photo-fallback">Image unavailable</span>
 				{/if}

@@ -1,11 +1,14 @@
-export const PHOTO_CAPTION_MAX_LENGTH = 160;
-export const IMAGE_URL_EXTENSIONS = /\.(avif|gif|jpe?g|png|svg|webp)$/i;
+import type { PublicTripPhoto } from '$lib/models/public';
 
-export function isValidImageUrl(value: string): boolean {
-	try {
-		const url = new URL(value);
-		return ['http:', 'https:'].includes(url.protocol) && IMAGE_URL_EXTENSIONS.test(url.pathname);
-	} catch {
-		return false;
+export const PHOTO_CAPTION_MAX_LENGTH = 160;
+export const PHOTO_MAX_BYTES = 2 * 1024 * 1024;
+export const PHOTO_MAX_PER_TRIP = 10;
+export const PHOTO_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+
+export function photoSource(photo: PublicTripPhoto): string {
+	if (photo.mimeType && photo.data) {
+		return `data:${photo.mimeType};base64,${photo.data}`;
 	}
+
+	return photo.legacyUrl ?? '';
 }

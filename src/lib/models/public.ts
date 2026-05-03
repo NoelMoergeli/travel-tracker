@@ -1,8 +1,12 @@
 export interface PublicTripPhoto {
 	id: string;
-	url: string;
+	filename: string;
+	mimeType: string;
+	size: number;
+	data: string;
 	caption: string;
 	uploadedAt: string;
+	legacyUrl?: string;
 }
 
 export interface PublicTrip {

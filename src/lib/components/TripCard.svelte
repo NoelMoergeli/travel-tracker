@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicTrip } from '$lib/models/public';
+	import { photoSource } from '$lib/photos';
 
 	interface Props {
 		trip: PublicTrip;
@@ -24,7 +25,7 @@
 				<span class="trip-photo-fallback">Image unavailable</span>
 			{:else}
 				<img
-					src={previewPhoto.url}
+					src={photoSource(previewPhoto)}
 					alt={previewPhoto.caption || `${trip.placeName} photo`}
 					onerror={() => (previewBroken = true)}
 				/>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicTripPhoto } from '$lib/models/public';
+	import { photoSource } from '$lib/photos';
 
 	interface Props {
 		photos: PublicTripPhoto[];
@@ -71,7 +72,7 @@
 			{#if brokenPhotoIds.includes(currentPhoto.id)}
 				<div class="photo-lightbox-fallback">Image unavailable</div>
 			{:else}
-				<img src={currentPhoto.url} alt={currentPhoto.caption} onerror={() => markPhotoBroken(currentPhoto.id)} />
+				<img src={photoSource(currentPhoto)} alt={currentPhoto.caption} onerror={() => markPhotoBroken(currentPhoto.id)} />
 			{/if}
 
 			<div class="photo-lightbox-caption">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PublicTripPhoto } from '$lib/models/public';
-	import { PHOTO_CAPTION_MAX_LENGTH, isValidImageUrl } from '$lib/photos';
+	import { PHOTO_CAPTION_MAX_LENGTH, photoSource } from '$lib/photos';
 
 	interface Props {
 		photos?: PublicTripPhoto[];
@@ -36,11 +36,6 @@
 			return;
 		}
 
-		if (!isValidImageUrl(url)) {
-			message = 'Use a direct image URL ending in AVIF, GIF, JPG, PNG, SVG, or WebP.';
-			return;
-		}
-
 		if (caption.length > PHOTO_CAPTION_MAX_LENGTH) {
 			message = `Captions must be ${PHOTO_CAPTION_MAX_LENGTH} characters or fewer.`;
 			return;
@@ -50,9 +45,13 @@
 			...photoRows,
 			{
 				id: crypto.randomUUID(),
-				url,
+				filename: 'External image',
+				mimeType: '',
+				size: 0,
+				data: '',
 				caption,
-				uploadedAt: new Date().toISOString()
+				uploadedAt: new Date().toISOString(),
+				legacyUrl: url
 			}
 		];
 		photoUrl = '';
@@ -89,11 +88,17 @@
 			{#each photoRows as photo}
 				<article class="managed-photo">
 					<input type="hidden" name="photoIds" value={photo.id} />
-					<input type="hidden" name="photoUrls" value={photo.url} />
+					<input type="hidden" name="photoFilenames" value={photo.filename} />
+					<input type="hidden" name="photoMimeTypes" value={photo.mimeType} />
+					<input type="hidden" name="photoSizes" value={photo.size} />
+					<input type="hidden" name="photoData" value={photo.data} />
 					<input type="hidden" name="photoCaptions" value={photo.caption} />
 					<input type="hidden" name="photoUploadedAts" value={photo.uploadedAt} />
+					{#if photo.legacyUrl}
+						<input type="hidden" name="photoLegacyUrls" value={photo.legacyUrl} />
+					{/if}
 
-					<img src={photo.url} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
+					<img src={photoSource(photo)} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
 					{#if photo.isBroken}
 						<div class="photo-fallback">Image unavailable</div>
 					{/if}
