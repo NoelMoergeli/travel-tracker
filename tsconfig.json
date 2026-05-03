@@ -9,7 +9,7 @@
     "strict": true,
     "noImplicitAny": false
   },
-  "include": ["src/**/*", "src/node_modules/**/*"],
+  "include": ["src-new/**/*", "src/**/*", "src/node_modules/**/*"],
   "references": []
 }
 
