@@ -49,22 +49,9 @@
 				<textarea class="input textarea" name="notes">{values.notes}</textarea>
 			</label>
 
-			{#if images.length}
-				<div class="field">
-					<span>Existing uploaded photos</span>
-					<div class="image-grid">
-						{#each images as image}
-							<label class="image-choice">
-								<img src={image} alt="" />
-								<span>
-									<input type="checkbox" name="existingImages" value={image} checked />
-									Keep
-								</span>
-							</label>
-						{/each}
-					</div>
-				</div>
-			{/if}
+			{#each images as image}
+				<input type="hidden" name="existingImages" value={image} />
+			{/each}
 
 			<PhotoManager {photos} />
 
