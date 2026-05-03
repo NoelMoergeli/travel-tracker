@@ -386,6 +386,65 @@ input {
 	gap: 8px;
 }
 
+.modal-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+}
+
+.modal-backdrop {
+	position: absolute;
+	inset: 0;
+	border: 0;
+	background: rgba(20, 33, 61, 0.44);
+	cursor: default;
+}
+
+.modal {
+	position: relative;
+	z-index: 1;
+	width: min(440px, 100%);
+	margin: 0;
+	border-radius: 8px;
+	border: 1px solid #d9e1ea;
+	background: white;
+	padding: 24px;
+	box-shadow: 0 24px 70px rgba(20, 33, 61, 0.22);
+}
+
+.modal h2 {
+	margin: 0 0 8px;
+}
+
+.modal p {
+	margin: 0;
+	color: #5c6f82;
+}
+
+.modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+	margin-top: 22px;
+}
+
+.toast-error {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 60;
+	border: 1px solid #fecdca;
+	border-radius: 8px;
+	background: #fff5f5;
+	color: #b42318;
+	padding: 12px 14px;
+	font-weight: 800;
+	box-shadow: 0 18px 50px rgba(20, 33, 61, 0.12);
+}
+
 @media (max-width: 720px) {
 	.header-inner {
 		align-items: flex-start;

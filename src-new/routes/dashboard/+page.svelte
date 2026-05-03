@@ -1,15 +1,17 @@
 <script lang="ts">
 	import WorldMap from '$lib/components/WorldMap.svelte';
 	import { getCountryOptions, type CountryOption } from '$lib/countries';
-	import type { PageData } from './$types';
+	import type { ActionData, PageData } from './$types';
+	import type { PublicTrip } from '$lib/models/public';
 
-	let { data }: { data: PageData } = $props();
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	const countries = getCountryOptions();
 	const visited = $derived(Array.from(new Set(data.trips.map((trip) => trip.countryCode))));
 
 	let query = $state('');
 	let selectedCountry = $state<CountryOption | null>(null);
+	let deleteCandidate = $state<PublicTrip | null>(null);
 
 	const searchResults = $derived.by(() => {
 		const normalized = query.trim().toLowerCase();
@@ -62,7 +64,9 @@
 
 						<div class="trip-actions">
 							<a class="button button-secondary" href={`/trip/${trip.id}/edit`}>Edit</a>
-							<button class="button button-danger" type="button">Delete</button>
+							<button class="button button-danger" type="button" onclick={() => (deleteCandidate = trip)}>
+								Delete
+							</button>
 						</div>
 					</article>
 				{/each}
@@ -116,3 +120,36 @@
 		/>
 	</section>
 </section>
+
+{#if form?.message}
+	<p class="toast-error" role="alert">{form.message}</p>
+{/if}
+
+{#if deleteCandidate}
+	<div class="modal-layer">
+		<button
+			class="modal-backdrop"
+			type="button"
+			aria-label="Cancel deletion"
+			onclick={() => (deleteCandidate = null)}
+		></button>
+		<dialog
+			open
+			class="modal"
+			aria-labelledby="delete-title"
+		>
+			<h2 id="delete-title">Delete this trip?</h2>
+			<p>
+				This will permanently delete the trip to {deleteCandidate.placeName},
+				{deleteCandidate.countryName}.
+			</p>
+			<form method="POST" action="?/deleteTrip" class="modal-actions">
+				<input type="hidden" name="tripId" value={deleteCandidate.id} />
+				<button class="button button-secondary" type="button" onclick={() => (deleteCandidate = null)}>
+					Cancel
+				</button>
+				<button class="button button-danger" type="submit">Delete Trip</button>
+			</form>
+		</dialog>
+	</div>
+{/if}

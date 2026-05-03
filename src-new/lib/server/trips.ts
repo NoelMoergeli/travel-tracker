@@ -133,3 +133,15 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 
 	return update.matchedCount > 0;
 }
+
+export async function deleteTrip(userId: string, tripId: string): Promise<boolean> {
+	if (!ObjectId.isValid(tripId)) return false;
+
+	const db = await getDb();
+	const result = await db.collection<Trip>(TRIPS_COLLECTION).deleteOne({
+		_id: new ObjectId(tripId),
+		userId: new ObjectId(userId)
+	});
+
+	return result.deletedCount > 0;
+}
