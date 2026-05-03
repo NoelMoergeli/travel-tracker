@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { createTrip, tripValuesFromForm } from '$lib/server/trips';
+import { createTrip, photoValuesFromForm, tripValuesFromForm } from '$lib/server/trips';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) throw redirect(302, '/login');
@@ -21,7 +21,8 @@ export const actions: Actions = {
 		} catch (error) {
 			return fail(400, {
 				message: error instanceof Error ? error.message : 'Unable to create trip.',
-				values: tripValuesFromForm(formData)
+				values: tripValuesFromForm(formData),
+				photos: photoValuesFromForm(formData)
 			});
 		}
 

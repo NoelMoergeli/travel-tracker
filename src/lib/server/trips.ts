@@ -5,7 +5,7 @@ import { getCountryName } from '$lib/countries';
 import { getDb } from '$lib/db/mongo';
 import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
 import { TRIPS_COLLECTION, type LegacyTripPhoto, type StoredTripPhoto, type Trip, type TripPhoto } from '$lib/models/trip';
-import { PHOTO_ALLOWED_MIME_TYPES, PHOTO_CAPTION_MAX_LENGTH } from '$lib/photos';
+import { PHOTO_ALLOWED_MIME_TYPES, PHOTO_CAPTION_MAX_LENGTH, PHOTO_MAX_BYTES, PHOTO_MAX_PER_TRIP } from '$lib/photos';
 import { uploadImages } from './uploads';
 
 export const TripFormSchema = z
@@ -29,16 +29,36 @@ export interface TripFormValues {
 	notes: string;
 }
 
-export const TripPhotoFormSchema = z.object({
-	id: z.string().trim().optional(),
-	filename: z.string().trim().optional(),
-	mimeType: z.string().trim().optional(),
-	size: z.coerce.number().optional(),
-	data: z.string().trim().optional(),
-	caption: z.string().trim().max(PHOTO_CAPTION_MAX_LENGTH, 'Photo captions must be 160 characters or fewer.').optional(),
-	uploadedAt: z.string().trim().optional(),
-	legacyUrl: z.string().trim().optional()
-});
+export const TripPhotoFormSchema = z
+	.object({
+		id: z.string().trim().optional(),
+		filename: z.string().trim().optional(),
+		mimeType: z.string().trim().optional(),
+		size: z.coerce.number().optional(),
+		data: z.string().trim().optional(),
+		caption: z.string().trim().max(PHOTO_CAPTION_MAX_LENGTH, 'Photo captions must be 160 characters or fewer.').optional(),
+		uploadedAt: z.string().trim().optional(),
+		legacyUrl: z.string().trim().optional()
+	})
+	.superRefine((photo, context) => {
+		if (photo.legacyUrl && !photo.data) return;
+
+		if (!photo.filename) {
+			context.addIssue({ code: z.ZodIssueCode.custom, message: 'Photo filename is required.', path: ['filename'] });
+		}
+
+		if (!photo.mimeType || !PHOTO_ALLOWED_MIME_TYPES.includes(photo.mimeType as (typeof PHOTO_ALLOWED_MIME_TYPES)[number])) {
+			context.addIssue({ code: z.ZodIssueCode.custom, message: 'Only JPEG, PNG, and WebP photos are supported.', path: ['mimeType'] });
+		}
+
+		if (!photo.size || photo.size <= 0 || photo.size > PHOTO_MAX_BYTES) {
+			context.addIssue({ code: z.ZodIssueCode.custom, message: 'Each photo must be 2 MB or smaller.', path: ['size'] });
+		}
+
+		if (!photo.data) {
+			context.addIssue({ code: z.ZodIssueCode.custom, message: 'Photo data is required.', path: ['data'] });
+		}
+	});
 
 function normalizeTripPhotos(photos: Trip['photos']): PublicTripPhoto[] {
 	return (photos ?? [])
@@ -138,7 +158,13 @@ export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
 }
 
 export function photosFromForm(formData: FormData): StoredTripPhoto[] {
-	return photoValuesFromForm(formData).map((photo) => {
+	const photoValues = photoValuesFromForm(formData);
+
+	if (photoValues.length > PHOTO_MAX_PER_TRIP) {
+		throw new Error(`Trips can have up to ${PHOTO_MAX_PER_TRIP} photos.`);
+	}
+
+	return photoValues.map((photo) => {
 		const result = TripPhotoFormSchema.safeParse(photo);
 
 		if (!result.success) {
@@ -160,9 +186,7 @@ export function photosFromForm(formData: FormData): StoredTripPhoto[] {
 		return {
 			id: result.data.id || randomUUID(),
 			filename: result.data.filename || 'photo',
-			mimeType: result.data.mimeType && PHOTO_ALLOWED_MIME_TYPES.includes(result.data.mimeType as (typeof PHOTO_ALLOWED_MIME_TYPES)[number])
-				? result.data.mimeType
-				: 'image/jpeg',
+			mimeType: result.data.mimeType ?? 'image/jpeg',
 			size: result.data.size ?? 0,
 			data: result.data.data ?? '',
 			caption: result.data.caption || undefined,

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CountryPicker from '$lib/components/CountryPicker.svelte';
+	import PhotoManager from '$lib/components/PhotoManager.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -11,6 +12,8 @@
 		dateTo: form?.values?.dateTo ?? '',
 		notes: form?.values?.notes ?? ''
 	});
+
+	const photos = $derived(form?.photos ?? []);
 </script>
 
 <section class="form-page">
@@ -45,10 +48,7 @@
 				<textarea class="input textarea" name="notes">{values.notes}</textarea>
 			</label>
 
-			<label class="field">
-				Photos
-				<input class="input file-input" name="images" type="file" accept="image/*" multiple />
-			</label>
+			<PhotoManager {photos} />
 
 			<div class="form-actions">
 				<a class="button button-secondary" href="/dashboard">Cancel</a>

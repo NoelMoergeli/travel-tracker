@@ -68,11 +68,6 @@
 
 			<PhotoManager {photos} />
 
-			<label class="field">
-				Add photos
-				<input class="input file-input" name="images" type="file" accept="image/*" multiple />
-			</label>
-
 			<div class="form-actions">
 				<a class="button button-secondary" href="/dashboard">Cancel</a>
 				<button class="button button-primary" type="submit">Save Changes</button>

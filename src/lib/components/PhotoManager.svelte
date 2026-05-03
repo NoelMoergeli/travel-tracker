@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { PublicTripPhoto } from '$lib/models/public';
-	import { PHOTO_CAPTION_MAX_LENGTH, photoSource } from '$lib/photos';
+	import {
+		PHOTO_CAPTION_MAX_LENGTH,
+		PHOTO_MAX_PER_TRIP,
+		photoSource,
+		validatePhotoFile
+	} from '$lib/photos';
 
 	interface Props {
 		photos?: PublicTripPhoto[];
@@ -30,7 +35,23 @@
 
 	function handleFileChange(event: Event): void {
 		const input = event.currentTarget as HTMLInputElement;
-		photoFile = input.files?.[0] ?? null;
+		const file = input.files?.[0] ?? null;
+
+		if (!file) {
+			photoFile = null;
+			message = '';
+			return;
+		}
+
+		const validationMessage = validatePhotoFile(file);
+		if (validationMessage) {
+			photoFile = null;
+			message = validationMessage;
+			if (fileInput) fileInput.value = '';
+			return;
+		}
+
+		photoFile = file;
 		message = '';
 	}
 
@@ -39,6 +60,17 @@
 
 		if (!photoFile) {
 			message = 'Choose an image file first.';
+			return;
+		}
+
+		if (photoRows.length >= PHOTO_MAX_PER_TRIP) {
+			message = `Trips can have up to ${PHOTO_MAX_PER_TRIP} photos.`;
+			return;
+		}
+
+		const validationMessage = validatePhotoFile(photoFile);
+		if (validationMessage) {
+			message = validationMessage;
 			return;
 		}
 
