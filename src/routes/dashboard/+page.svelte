@@ -36,6 +36,11 @@
 		query = '';
 	}
 
+	function clearSelectedCountry(): void {
+		selectedCountry = null;
+		query = '';
+	}
+
 	function formatRange(dateFrom: string, dateTo: string): string {
 		return dateTo ? `${dateFrom} to ${dateTo}` : dateFrom;
 	}
@@ -107,6 +112,9 @@
 					<p>Selected country</p>
 					<strong>{selectedCountry.name} ({selectedCountry.code})</strong>
 					<a class="button button-primary" href={`/trip/new?country=${selectedCountry.code}`}>Record Trip</a>
+					<button class="button button-secondary" type="button" onclick={clearSelectedCountry}>
+						Clear Selection
+					</button>
 				</div>
 			{/if}
 		</div>
