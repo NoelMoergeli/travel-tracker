@@ -22,13 +22,13 @@
 				{#if data.user}
 					<a class="nav-link" href="/trip/new">Add Trip</a>
 					<a class="nav-link" href="/dashboard">Dashboard</a>
+					<form method="POST" action="/logout">
+						<button class="button button-secondary" type="submit">Log out</button>
+					</form>
 					<div class="account" aria-label={`Signed in as ${data.user.username}`}>
 						<span class="avatar" aria-hidden="true">{initials(data.user.username)}</span>
 						<span>{data.user.username}</span>
 					</div>
-					<form method="POST" action="/logout">
-						<button class="button button-secondary" type="submit">Log out</button>
-					</form>
 				{:else}
 					<a class="nav-link" href="/login">Log in</a>
 					<a class="button button-primary" href="/register">Create account</a>
