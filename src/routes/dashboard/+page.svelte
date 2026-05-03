@@ -71,8 +71,14 @@
 	<aside class="overview-panel" aria-label="Trip overview">
 		<div class="overview-heading">
 			<p class="eyebrow">Travel overview</p>
-			<h1>{selectedCountry ? selectedCountry.name : 'Dashboard'}</h1>
-			<p>{data.trips.length} recorded {data.trips.length === 1 ? 'trip' : 'trips'}</p>
+			<h1>Dashboard</h1>
+			<p>{data.trips.length} total recorded {data.trips.length === 1 ? 'trip' : 'trips'}</p>
+			{#if selectedCountry}
+				<div class="active-filter">
+					<span>Filtered by</span>
+					<strong>{selectedCountry.name}</strong>
+				</div>
+			{/if}
 		</div>
 
 		<TripList

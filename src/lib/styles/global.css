@@ -263,6 +263,25 @@ input {
 	color: var(--color-muted);
 }
 
+.active-filter {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 12px;
+	border-radius: var(--radius);
+	background: var(--color-primary-soft);
+	padding: 8px 10px;
+	color: var(--color-ink);
+	font-weight: 800;
+}
+
+.active-filter span {
+	color: var(--color-primary);
+	font-size: 0.76rem;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
 .eyebrow,
 .trip-country,
 .selected-country p {
