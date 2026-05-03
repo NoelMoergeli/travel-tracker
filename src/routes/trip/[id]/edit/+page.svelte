@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CountryPicker from '$lib/components/CountryPicker.svelte';
+	import PhotoManager from '$lib/components/PhotoManager.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -13,6 +14,7 @@
 	});
 
 	const images = $derived(form?.images ?? data.trip.images);
+	const photos = $derived(form?.photos ?? data.trip.photos);
 </script>
 
 <section class="form-page">
@@ -49,7 +51,7 @@
 
 			{#if images.length}
 				<div class="field">
-					<span>Existing photos</span>
+					<span>Existing uploaded photos</span>
 					<div class="image-grid">
 						{#each images as image}
 							<label class="image-choice">
@@ -63,6 +65,8 @@
 					</div>
 				</div>
 			{/if}
+
+			<PhotoManager {photos} />
 
 			<label class="field">
 				Add photos

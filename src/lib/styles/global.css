@@ -390,6 +390,21 @@ input {
 	font-size: 2rem;
 }
 
+.section-heading {
+	margin-bottom: 14px;
+}
+
+.section-heading h2 {
+	margin: 0 0 4px;
+	font-size: 1.15rem;
+}
+
+.section-heading p,
+.photo-empty {
+	margin: 0;
+	color: var(--color-muted);
+}
+
 .form-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -432,6 +447,58 @@ input {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+}
+
+.photo-manager {
+	margin: 22px 0;
+	border-top: 1px solid var(--color-line-soft);
+	padding-top: 22px;
+}
+
+.photo-manager-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.managed-photo {
+	position: relative;
+	display: grid;
+	gap: 10px;
+	border: 1px solid var(--color-line);
+	border-radius: var(--radius);
+	background: #fbfcfe;
+	padding: 10px;
+}
+
+.managed-photo img,
+.photo-fallback {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	border-radius: 6px;
+	object-fit: cover;
+}
+
+.photo-fallback {
+	display: grid;
+	place-items: center;
+	border: 1px dashed #c5d0dc;
+	background: #eef3f8;
+	color: var(--color-muted);
+	font-weight: 700;
+}
+
+.managed-photo p {
+	margin: 0 0 10px;
+	color: var(--color-muted);
+	font-size: 0.92rem;
+}
+
+.photo-add-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+	gap: 16px;
 }
 
 .modal-layer {
