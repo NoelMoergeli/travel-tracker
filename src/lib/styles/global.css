@@ -217,7 +217,7 @@ input {
 	display: grid;
 	grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
 	gap: 24px;
-	align-items: stretch;
+	align-items: start;
 }
 
 .overview-panel,
@@ -229,10 +229,12 @@ input {
 }
 
 .overview-panel {
-	min-height: calc(100vh - 150px);
+	height: clamp(540px, calc(100vh - 150px), 780px);
+	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	padding: 22px;
+	overflow: hidden;
 }
 
 .overview-heading {
@@ -262,9 +264,16 @@ input {
 }
 
 .trip-list {
+	flex: 1 1 auto;
+	min-height: 0;
 	display: grid;
+	align-content: start;
 	gap: 12px;
 	padding: 18px 0;
+	overflow-y: auto;
+	padding-right: 6px;
+	scrollbar-gutter: stable;
+	overscroll-behavior: contain;
 }
 
 .trip-card {
@@ -336,7 +345,7 @@ input {
 
 .country-search {
 	position: relative;
-	margin-top: auto;
+	flex: 0 0 auto;
 	border-top: 1px solid var(--color-line-soft);
 	padding-top: 18px;
 }
@@ -392,7 +401,8 @@ input {
 }
 
 .map-panel {
-	min-height: calc(100vh - 150px);
+	height: clamp(540px, calc(100vh - 150px), 780px);
+	min-height: 0;
 	display: grid;
 	place-items: center;
 	padding: 18px;
@@ -806,7 +816,12 @@ input {
 
 	.overview-panel,
 	.map-panel {
+		height: auto;
 		min-height: auto;
+	}
+
+	.trip-list {
+		max-height: 460px;
 	}
 
 	.form-grid {

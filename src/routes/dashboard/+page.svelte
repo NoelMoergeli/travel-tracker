@@ -1,7 +1,7 @@
 <script lang="ts">
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import PhotoLightbox from '$lib/components/PhotoLightbox.svelte';
-	import TripCard from '$lib/components/TripCard.svelte';
+	import TripList from '$lib/components/TripList.svelte';
 	import WorldMap from '$lib/components/WorldMap.svelte';
 	import { getCountryOptions, type CountryOption } from '$lib/countries';
 	import type { ActionData, PageData } from './$types';
@@ -37,6 +37,10 @@
 		return data.trips.filter((trip) => trip.countryCode === selectedCountry?.code);
 	});
 
+	const emptyTripMessage = $derived(
+		selectedCountry ? `No trips recorded in ${selectedCountry.name}.` : 'Start by recording your first trip.'
+	);
+
 	function selectCountry(country: CountryOption): void {
 		selectedCountry = country;
 		query = '';
@@ -66,22 +70,12 @@
 			<p>{data.trips.length} recorded {data.trips.length === 1 ? 'trip' : 'trips'}</p>
 		</div>
 
-		<div class="trip-list" aria-label="Past trips">
-			{#if visibleTrips.length}
-				{#each visibleTrips as trip}
-					<TripCard
-						{trip}
-						onViewGallery={() => (galleryTrip = trip)}
-						onDelete={() => (deleteCandidate = trip)}
-					/>
-				{/each}
-			{:else}
-				<div class="empty-state">
-					<h2>No trips yet</h2>
-					<p>{selectedCountry ? `No trips recorded in ${selectedCountry.name}.` : 'Start by recording your first trip.'}</p>
-				</div>
-			{/if}
-		</div>
+		<TripList
+			trips={visibleTrips}
+			emptyMessage={emptyTripMessage}
+			onViewGallery={(trip) => (galleryTrip = trip)}
+			onDelete={(trip) => (deleteCandidate = trip)}
+		/>
 
 		<div class="country-search">
 			<label class="field">
