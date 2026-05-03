@@ -1,9 +1,10 @@
 <script lang="ts">
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
+	import PhotoLightbox from '$lib/components/PhotoLightbox.svelte';
 	import WorldMap from '$lib/components/WorldMap.svelte';
 	import { getCountryOptions, type CountryOption } from '$lib/countries';
 	import type { ActionData, PageData } from './$types';
-	import type { PublicTrip } from '$lib/models/public';
+	import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -14,6 +15,8 @@
 	let selectedCountry = $state<CountryOption | null>(null);
 	let deleteCandidate = $state<PublicTrip | null>(null);
 	let galleryTrip = $state<PublicTrip | null>(null);
+	let lightboxPhotos = $state<PublicTripPhoto[]>([]);
+	let lightboxIndex = $state(0);
 
 	const searchResults = $derived.by(() => {
 		const normalized = query.trim().toLowerCase();
@@ -45,6 +48,16 @@
 
 	function formatRange(dateFrom: string, dateTo: string): string {
 		return dateTo ? `${dateFrom} to ${dateTo}` : dateFrom;
+	}
+
+	function openLightbox(photos: PublicTripPhoto[], index: number): void {
+		lightboxPhotos = photos;
+		lightboxIndex = index;
+	}
+
+	function closeLightbox(): void {
+		lightboxPhotos = [];
+		lightboxIndex = 0;
 	}
 </script>
 
@@ -194,7 +207,11 @@
 				</button>
 			</div>
 
-			<PhotoGrid photos={galleryTrip.photos} />
+			<PhotoGrid photos={galleryTrip.photos} onSelectPhoto={(index) => openLightbox(galleryTrip.photos, index)} />
 		</dialog>
 	</div>
+{/if}
+
+{#if lightboxPhotos.length}
+	<PhotoLightbox photos={lightboxPhotos} initialIndex={lightboxIndex} onClose={closeLightbox} />
 {/if}
