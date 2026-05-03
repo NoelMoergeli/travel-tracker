@@ -96,6 +96,12 @@ input {
 	color: #14213d;
 }
 
+.button-danger {
+	border-color: #fecdca;
+	background: #fff5f5;
+	color: #b42318;
+}
+
 .account {
 	display: inline-flex;
 	align-items: center;
@@ -168,6 +174,151 @@ input {
 	font-weight: 700;
 }
 
+.dashboard-page {
+	display: grid;
+	grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+	gap: 24px;
+	align-items: stretch;
+}
+
+.overview-panel,
+.map-panel {
+	border: 1px solid #d9e1ea;
+	border-radius: 8px;
+	background: white;
+	box-shadow: 0 18px 50px rgba(20, 33, 61, 0.08);
+}
+
+.overview-panel {
+	min-height: calc(100vh - 150px);
+	display: flex;
+	flex-direction: column;
+	padding: 22px;
+}
+
+.overview-heading {
+	border-bottom: 1px solid #e6ecf2;
+	padding-bottom: 18px;
+}
+
+.overview-heading h1 {
+	margin: 4px 0;
+	font-size: 2rem;
+}
+
+.overview-heading p {
+	margin: 0;
+	color: #5c6f82;
+}
+
+.eyebrow,
+.trip-country,
+.selected-country p {
+	margin: 0;
+	color: #176b87;
+	font-size: 0.78rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.trip-list {
+	display: grid;
+	gap: 12px;
+	padding: 18px 0;
+}
+
+.trip-card {
+	display: grid;
+	gap: 14px;
+	border: 1px solid #e6ecf2;
+	border-radius: 8px;
+	padding: 16px;
+	background: #fbfcfe;
+}
+
+.trip-card h2,
+.empty-state h2 {
+	margin: 4px 0;
+	font-size: 1.05rem;
+}
+
+.trip-dates,
+.trip-notes,
+.empty-state p {
+	margin: 0;
+	color: #5c6f82;
+}
+
+.trip-notes {
+	margin-top: 8px;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.trip-actions {
+	display: flex;
+	gap: 10px;
+}
+
+.country-search {
+	position: relative;
+	margin-top: auto;
+	border-top: 1px solid #e6ecf2;
+	padding-top: 18px;
+}
+
+.search-results {
+	position: absolute;
+	right: 0;
+	left: 0;
+	bottom: calc(100% - 8px);
+	z-index: 10;
+	list-style: none;
+	margin: 0;
+	padding: 8px;
+	border: 1px solid #d9e1ea;
+	border-radius: 8px;
+	background: white;
+	box-shadow: 0 18px 50px rgba(20, 33, 61, 0.12);
+}
+
+.search-results button {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	padding: 10px;
+	color: #14213d;
+	cursor: pointer;
+}
+
+.search-results button:hover {
+	background: #eef3f8;
+}
+
+.selected-country {
+	display: grid;
+	gap: 10px;
+	margin-top: 14px;
+	border-radius: 8px;
+	background: #eef8fb;
+	padding: 14px;
+}
+
+.map-panel {
+	min-height: calc(100vh - 150px);
+	display: grid;
+	place-items: center;
+	padding: 18px;
+	overflow: hidden;
+}
+
 @media (max-width: 720px) {
 	.header-inner {
 		align-items: flex-start;
@@ -181,5 +332,14 @@ input {
 
 	.account {
 		margin-left: auto;
+	}
+
+	.dashboard-page {
+		grid-template-columns: 1fr;
+	}
+
+	.overview-panel,
+	.map-panel {
+		min-height: auto;
 	}
 }
