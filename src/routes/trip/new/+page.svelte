@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CountryPicker from '$lib/components/CountryPicker.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -21,17 +22,7 @@
 
 		<form method="POST" enctype="multipart/form-data">
 			<div class="form-grid">
-				<label class="field">
-					Country code
-					<input
-						class="input"
-						name="countryCode"
-						maxlength="2"
-						value={values.countryCode}
-						placeholder="CH"
-						required
-					/>
-				</label>
+				<CountryPicker value={values.countryCode} />
 
 				<label class="field">
 					Place or city
