@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CountrySearch from '$lib/components/CountrySearch.svelte';
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import PhotoLightbox from '$lib/components/PhotoLightbox.svelte';
 	import TripList from '$lib/components/TripList.svelte';
@@ -51,6 +52,10 @@
 		query = '';
 	}
 
+	function updateCountryQuery(nextQuery: string): void {
+		query = nextQuery;
+	}
+
 	function openLightbox(photos: PublicTripPhoto[], index: number): void {
 		lightboxPhotos = photos;
 		lightboxIndex = index;
@@ -76,51 +81,26 @@
 			onViewGallery={(trip) => (galleryTrip = trip)}
 			onDelete={(trip) => (deleteCandidate = trip)}
 		/>
-
-		<div class="country-search">
-			<label class="field">
-				Country search
-				<input
-					class="input"
-					bind:value={query}
-					autocomplete="off"
-					placeholder="Search by country or code"
-				/>
-			</label>
-
-			{#if searchResults.length}
-				<ul class="search-results" aria-label="Country search results">
-					{#each searchResults as country}
-						<li>
-							<button type="button" onclick={() => selectCountry(country)}>
-								<span>{country.name}</span>
-								<span>{country.code}</span>
-							</button>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-
-			{#if selectedCountry}
-				<div class="selected-country">
-					<p>Selected country</p>
-					<strong>{selectedCountry.name} ({selectedCountry.code})</strong>
-					<a class="button button-primary" href={`/trip/new?country=${selectedCountry.code}`}>Record Trip</a>
-					<button class="button button-secondary" type="button" onclick={clearSelectedCountry}>
-						Clear Selection
-					</button>
-				</div>
-			{/if}
-		</div>
 	</aside>
 
-	<section class="map-panel" aria-label="World map">
-		<WorldMap
-			{visited}
-			selected={selectedCountry?.code}
-			onSelectCountry={(country) => selectCountry(country)}
+	<div class="map-column">
+		<CountrySearch
+			{query}
+			{searchResults}
+			{selectedCountry}
+			onQueryChange={updateCountryQuery}
+			onSelectCountry={selectCountry}
+			onClearSelectedCountry={clearSelectedCountry}
 		/>
-	</section>
+
+		<section class="map-panel" aria-label="World map">
+			<WorldMap
+				{visited}
+				selected={selectedCountry?.code}
+				onSelectCountry={(country) => selectCountry(country)}
+			/>
+		</section>
+	</div>
 </section>
 
 {#if form?.message}
