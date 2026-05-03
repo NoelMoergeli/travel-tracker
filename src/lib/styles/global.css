@@ -214,6 +214,7 @@ input {
 }
 
 .dashboard-page {
+	--dashboard-panel-height: clamp(540px, calc(100vh - 150px), 780px);
 	display: grid;
 	grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
 	gap: 24px;
@@ -222,8 +223,11 @@ input {
 
 .map-column {
 	display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
 	gap: 14px;
+	height: var(--dashboard-panel-height);
 	min-width: 0;
+	min-height: 0;
 }
 
 .overview-panel,
@@ -236,7 +240,7 @@ input {
 }
 
 .overview-panel {
-	height: clamp(540px, calc(100vh - 150px), 780px);
+	height: var(--dashboard-panel-height);
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
@@ -427,7 +431,7 @@ input {
 }
 
 .map-panel {
-	height: clamp(480px, calc(100vh - 208px), 722px);
+	height: auto;
 	min-height: 0;
 	display: grid;
 	place-items: center;
@@ -841,6 +845,7 @@ input {
 	}
 
 	.map-column {
+		height: auto;
 		order: -1;
 	}
 
