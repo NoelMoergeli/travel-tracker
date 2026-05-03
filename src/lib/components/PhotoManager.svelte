@@ -133,67 +133,79 @@
 		<h2 id="photo-manager-title">Photos</h2>
 	</div>
 
-	{#if photoRows.length}
-		<div class="photo-manager-grid">
-			{#each photoRows as photo}
-				<article class="managed-photo">
-					<input type="hidden" name="photoIds" value={photo.id} />
-					<input type="hidden" name="photoFilenames" value={photo.filename} />
-					<input type="hidden" name="photoMimeTypes" value={photo.mimeType} />
-					<input type="hidden" name="photoSizes" value={photo.size} />
-					<input type="hidden" name="photoData" value={photo.data} />
-					<input type="hidden" name="photoCaptions" value={photo.caption} />
-					<input type="hidden" name="photoUploadedAts" value={photo.uploadedAt} />
-					{#if photo.legacyUrl}
-						<input type="hidden" name="photoLegacyUrls" value={photo.legacyUrl} />
-					{/if}
-
-					<img src={photoSource(photo)} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
-					{#if photo.isBroken}
-						<div class="photo-fallback">Image unavailable</div>
-					{/if}
-
-					<div>
-						<p>{photo.caption || 'No caption'}</p>
-						<button class="button button-danger" type="button" onclick={() => removePhoto(photo.id)}>
-							Remove Photo
-						</button>
-					</div>
-				</article>
-			{/each}
+	<div class="photo-manager-block">
+		<div class="photo-subheading">
+			<h3>Existing photos</h3>
 		</div>
-	{:else}
-		<p class="photo-empty">No gallery photos yet.</p>
-	{/if}
 
-	<div class="photo-add-grid">
-		<label class="field">
-			Photo file
-			<input
-				bind:this={fileInput}
-				class="input file-input"
-				type="file"
-				accept="image/jpeg,image/png,image/webp"
-				onchange={handleFileChange}
-			/>
-		</label>
+		{#if photoRows.length}
+			<div class="photo-manager-grid">
+				{#each photoRows as photo}
+					<article class="managed-photo">
+						<input type="hidden" name="photoIds" value={photo.id} />
+						<input type="hidden" name="photoFilenames" value={photo.filename} />
+						<input type="hidden" name="photoMimeTypes" value={photo.mimeType} />
+						<input type="hidden" name="photoSizes" value={photo.size} />
+						<input type="hidden" name="photoData" value={photo.data} />
+						<input type="hidden" name="photoCaptions" value={photo.caption} />
+						<input type="hidden" name="photoUploadedAts" value={photo.uploadedAt} />
+						{#if photo.legacyUrl}
+							<input type="hidden" name="photoLegacyUrls" value={photo.legacyUrl} />
+						{/if}
 
-		<label class="field">
-			Caption
-			<input
-				class="input"
-				bind:value={photoCaption}
-				maxlength={PHOTO_CAPTION_MAX_LENGTH}
-				placeholder="Optional caption"
-			/>
-		</label>
+						<img src={photoSource(photo)} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
+						{#if photo.isBroken}
+							<div class="photo-fallback">Image unavailable</div>
+						{/if}
+
+						<div>
+							<p>{photo.caption || 'No caption'}</p>
+							<button class="button button-danger" type="button" onclick={() => removePhoto(photo.id)}>
+								Remove Photo
+							</button>
+						</div>
+					</article>
+				{/each}
+			</div>
+		{:else}
+			<p class="photo-empty">No gallery photos yet.</p>
+		{/if}
 	</div>
 
-	<div class="photo-manager-actions">
-		<button class="button button-secondary" type="button" onclick={addPhoto}>Add Photo</button>
-		{#if removedPhoto}
-			<button class="button button-secondary" type="button" onclick={undoRemovePhoto}>Undo Remove</button>
-		{/if}
+	<div class="photo-manager-block photo-add-block">
+		<div class="photo-subheading">
+			<h3>Add a photo</h3>
+		</div>
+
+		<div class="photo-add-grid">
+			<label class="field">
+				Photo file
+				<input
+					bind:this={fileInput}
+					class="input file-input"
+					type="file"
+					accept="image/jpeg,image/png,image/webp"
+					onchange={handleFileChange}
+				/>
+			</label>
+
+			<label class="field">
+				Caption
+				<input
+					class="input"
+					bind:value={photoCaption}
+					maxlength={PHOTO_CAPTION_MAX_LENGTH}
+					placeholder="Optional caption"
+				/>
+			</label>
+
+			<div class="photo-add-actions">
+				<button class="button button-primary" type="button" onclick={addPhoto}>Add Photo</button>
+				{#if removedPhoto}
+					<button class="button button-secondary" type="button" onclick={undoRemovePhoto}>Undo Remove</button>
+				{/if}
+			</div>
+		</div>
 	</div>
 
 	{#if message}

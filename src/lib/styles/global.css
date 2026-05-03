@@ -487,11 +487,29 @@ input {
 	padding-top: 22px;
 }
 
+.photo-manager-block {
+	display: grid;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.photo-add-block {
+	border: 1px solid var(--color-line-soft);
+	border-radius: var(--radius);
+	background: #fbfcfe;
+	padding: 16px;
+}
+
+.photo-subheading h3 {
+	margin: 0;
+	color: var(--color-ink);
+	font-size: 0.98rem;
+}
+
 .photo-manager-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 	gap: 12px;
-	margin-bottom: 16px;
 }
 
 .managed-photo {
@@ -533,14 +551,16 @@ input {
 
 .photo-add-grid {
 	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+	align-items: end;
 	gap: 16px;
 }
 
-.photo-manager-actions {
+.photo-add-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
+	margin-bottom: 16px;
 }
 
 .photo-grid {
@@ -796,6 +816,10 @@ input {
 	.photo-add-grid {
 		grid-template-columns: 1fr;
 		gap: 0;
+	}
+
+	.photo-add-actions {
+		margin-bottom: 0;
 	}
 
 	.modal-header {
