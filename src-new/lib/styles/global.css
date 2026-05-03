@@ -319,6 +319,44 @@ input {
 	overflow: hidden;
 }
 
+.form-page {
+	display: grid;
+	place-items: start center;
+}
+
+.form-panel {
+	width: min(760px, 100%);
+	border: 1px solid #d9e1ea;
+	border-radius: 8px;
+	background: white;
+	padding: 28px;
+	box-shadow: 0 18px 50px rgba(20, 33, 61, 0.08);
+}
+
+.form-heading {
+	margin-bottom: 22px;
+}
+
+.form-heading h1 {
+	margin: 4px 0 0;
+	font-size: 2rem;
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+}
+
+.textarea {
+	min-height: 140px;
+	resize: vertical;
+}
+
+.file-input {
+	padding: 10px;
+}
+
 @media (max-width: 720px) {
 	.header-inner {
 		align-items: flex-start;
@@ -341,5 +379,9 @@ input {
 	.overview-panel,
 	.map-panel {
 		min-height: auto;
+	}
+
+	.form-grid {
+		grid-template-columns: 1fr;
 	}
 }
