@@ -136,6 +136,7 @@
 
 	path {
 		cursor: pointer;
+		outline: none;
 		transition:
 			fill 120ms ease,
 			transform 120ms ease;
@@ -146,6 +147,10 @@
 	path:hover,
 	path:focus-visible {
 		fill: #8ecae6;
+		outline: none;
+	}
+
+	path:focus {
 		outline: none;
 	}
 
