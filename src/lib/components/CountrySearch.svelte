@@ -7,7 +7,6 @@
 		selectedCountry: CountryOption | null;
 		onQueryChange: (query: string) => void;
 		onSelectCountry: (country: CountryOption) => void;
-		onClearSelectedCountry: () => void;
 	}
 
 	let {
@@ -15,8 +14,7 @@
 		searchResults,
 		selectedCountry,
 		onQueryChange,
-		onSelectCountry,
-		onClearSelectedCountry
+		onSelectCountry
 	}: Props = $props();
 </script>
 
@@ -51,9 +49,6 @@
 			<strong>{selectedCountry.name} ({selectedCountry.code})</strong>
 			<div class="selected-country-actions">
 				<a class="button button-primary" href={`/trip/new?country=${selectedCountry.code}`}>Record Trip</a>
-				<button class="button button-secondary" type="button" onclick={onClearSelectedCountry}>
-					Clear Selection
-				</button>
 			</div>
 		</div>
 	{/if}

@@ -282,6 +282,23 @@ input {
 	letter-spacing: 0.06em;
 }
 
+.filter-clear-button {
+	min-height: 30px;
+	border: 1px solid #c5d0dc;
+	border-radius: 6px;
+	background: white;
+	color: var(--color-ink);
+	padding: 5px 9px;
+	font-size: 0.82rem;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.filter-clear-button:hover {
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+}
+
 .eyebrow,
 .trip-country,
 .selected-country p {

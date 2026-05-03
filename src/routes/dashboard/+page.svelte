@@ -77,6 +77,9 @@
 				<div class="active-filter">
 					<span>Filtered by</span>
 					<strong>{selectedCountry.name}</strong>
+					<button class="filter-clear-button" type="button" onclick={clearSelectedCountry}>
+						Clear Selection
+					</button>
 				</div>
 			{/if}
 		</div>
@@ -96,7 +99,6 @@
 			{selectedCountry}
 			onQueryChange={updateCountryQuery}
 			onSelectCountry={selectCountry}
-			onClearSelectedCountry={clearSelectedCountry}
 		/>
 
 		<section class="map-panel" aria-label="World map">
