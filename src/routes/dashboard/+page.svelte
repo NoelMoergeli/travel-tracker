@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import PhotoLightbox from '$lib/components/PhotoLightbox.svelte';
+	import TripCard from '$lib/components/TripCard.svelte';
 	import WorldMap from '$lib/components/WorldMap.svelte';
 	import { getCountryOptions, type CountryOption } from '$lib/countries';
 	import type { ActionData, PageData } from './$types';
@@ -17,7 +18,6 @@
 	let galleryTrip = $state<PublicTrip | null>(null);
 	let lightboxPhotos = $state<PublicTripPhoto[]>([]);
 	let lightboxIndex = $state(0);
-	let brokenPreviewPhotoIds = $state<string[]>([]);
 
 	const searchResults = $derived.by(() => {
 		const normalized = query.trim().toLowerCase();
@@ -47,10 +47,6 @@
 		query = '';
 	}
 
-	function formatRange(dateFrom: string, dateTo: string): string {
-		return dateTo ? `${dateFrom} to ${dateTo}` : dateFrom;
-	}
-
 	function openLightbox(photos: PublicTripPhoto[], index: number): void {
 		lightboxPhotos = photos;
 		lightboxIndex = index;
@@ -59,11 +55,6 @@
 	function closeLightbox(): void {
 		lightboxPhotos = [];
 		lightboxIndex = 0;
-	}
-
-	function markPreviewBroken(photoId: string): void {
-		if (brokenPreviewPhotoIds.includes(photoId)) return;
-		brokenPreviewPhotoIds = [...brokenPreviewPhotoIds, photoId];
 	}
 </script>
 
@@ -78,42 +69,11 @@
 		<div class="trip-list" aria-label="Past trips">
 			{#if visibleTrips.length}
 				{#each visibleTrips as trip}
-					<article class="trip-card">
-						{#if trip.photos.length}
-							<button class="trip-photo-preview" type="button" onclick={() => (galleryTrip = trip)}>
-								{#if brokenPreviewPhotoIds.includes(trip.photos[0].id)}
-									<span class="trip-photo-fallback">Image unavailable</span>
-								{:else}
-									<img
-										src={trip.photos[0].url}
-										alt={trip.photos[0].caption || `${trip.placeName} photo`}
-										onerror={() => markPreviewBroken(trip.photos[0].id)}
-									/>
-								{/if}
-							</button>
-						{/if}
-
-						<div>
-							<p class="trip-country">{trip.countryName}</p>
-							<h2>{trip.placeName}</h2>
-							<p class="trip-dates">{formatRange(trip.dateFrom, trip.dateTo)}</p>
-							{#if trip.notes}
-								<p class="trip-notes">{trip.notes}</p>
-							{/if}
-						</div>
-
-						<div class="trip-actions">
-							{#if trip.photos.length}
-								<button class="button button-secondary" type="button" onclick={() => (galleryTrip = trip)}>
-									View Gallery
-								</button>
-							{/if}
-							<a class="button button-secondary" href={`/trip/${trip.id}/edit`}>Edit</a>
-							<button class="button button-danger" type="button" onclick={() => (deleteCandidate = trip)}>
-								Delete
-							</button>
-						</div>
-					</article>
+					<TripCard
+						{trip}
+						onViewGallery={() => (galleryTrip = trip)}
+						onDelete={() => (deleteCandidate = trip)}
+					/>
 				{/each}
 			{:else}
 				<div class="empty-state">

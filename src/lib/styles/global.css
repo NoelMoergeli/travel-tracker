@@ -330,6 +330,7 @@ input {
 
 .trip-actions {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 10px;
 }
 
@@ -526,6 +527,10 @@ input {
 	font-size: 0.92rem;
 }
 
+.managed-photo .button {
+	width: 100%;
+}
+
 .photo-add-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -559,12 +564,17 @@ input {
 	cursor: pointer;
 }
 
+.gallery-photo button:hover img {
+	transform: scale(1.03);
+}
+
 .gallery-photo img,
 .gallery-photo .photo-fallback {
 	width: 100%;
 	aspect-ratio: 4 / 3;
 	display: block;
 	object-fit: cover;
+	transition: transform 160ms ease;
 }
 
 .gallery-photo figcaption {
@@ -696,6 +706,11 @@ input {
 	cursor: pointer;
 }
 
+.photo-lightbox-close:hover,
+.photo-lightbox-nav:hover {
+	background: white;
+}
+
 .photo-lightbox-close {
 	top: 0;
 	right: 0;
@@ -776,5 +791,42 @@ input {
 
 	.form-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.photo-add-grid {
+		grid-template-columns: 1fr;
+		gap: 0;
+	}
+
+	.modal-header {
+		flex-direction: column;
+	}
+
+	.gallery-modal {
+		max-height: calc(100vh - 28px);
+	}
+
+	.photo-lightbox-layer {
+		padding: 14px;
+	}
+
+	.photo-lightbox {
+		height: calc(100vh - 28px);
+	}
+
+	.photo-lightbox-close {
+		top: 0;
+		right: 0;
+	}
+
+	.photo-lightbox-nav {
+		top: auto;
+		bottom: 58px;
+		transform: none;
+	}
+
+	.photo-lightbox-caption {
+		flex-direction: column;
+		gap: 4px;
 	}
 }

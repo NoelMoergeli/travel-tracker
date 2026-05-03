@@ -82,7 +82,6 @@
 <section class="photo-manager" aria-labelledby="photo-manager-title">
 	<div class="section-heading">
 		<h2 id="photo-manager-title">Photos</h2>
-		<p>Add direct image URLs and optional captions for this trip.</p>
 	</div>
 
 	{#if photoRows.length}

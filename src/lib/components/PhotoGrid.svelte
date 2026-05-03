@@ -26,7 +26,11 @@
 <div class="photo-grid">
 	{#each galleryPhotos as photo, index}
 		<figure class="gallery-photo">
-			<button type="button" onclick={() => onSelectPhoto?.(index)}>
+			<button
+				type="button"
+				aria-label={photo.caption ? `Open photo: ${photo.caption}` : 'Open photo'}
+				onclick={() => onSelectPhoto?.(index)}
+			>
 				<img src={photo.url} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
 				{#if photo.isBroken}
 					<span class="photo-fallback">Image unavailable</span>
