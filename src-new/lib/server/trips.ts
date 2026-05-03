@@ -56,6 +56,24 @@ export function imagesFromForm(formData: FormData): File[] {
 		.filter((value): value is File => value instanceof File && value.size > 0);
 }
 
+export function existingImagesFromForm(formData: FormData): string[] {
+	return formData
+		.getAll('existingImages')
+		.filter((value): value is string => typeof value === 'string' && value.length > 0);
+}
+
+export async function loadTripForUser(userId: string, tripId: string): Promise<PublicTrip | null> {
+	if (!ObjectId.isValid(tripId)) return null;
+
+	const db = await getDb();
+	const trip = await db.collection<Trip>(TRIPS_COLLECTION).findOne({
+		_id: new ObjectId(tripId),
+		userId: new ObjectId(userId)
+	});
+
+	return trip ? tripToPublic(trip) : null;
+}
+
 export async function createTrip(userId: string, formData: FormData): Promise<void> {
 	const values = tripValuesFromForm(formData);
 	const result = TripFormSchema.safeParse(values);
@@ -79,4 +97,39 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 		createdAt: now,
 		updatedAt: now
 	});
+}
+
+export async function updateTrip(userId: string, tripId: string, formData: FormData): Promise<boolean> {
+	if (!ObjectId.isValid(tripId)) return false;
+
+	const values = tripValuesFromForm(formData);
+	const result = TripFormSchema.safeParse(values);
+
+	if (!result.success) {
+		throw new Error(result.error.issues[0]?.message ?? 'Invalid trip details.');
+	}
+
+	const db = await getDb();
+	const newImages = await uploadImages(db, imagesFromForm(formData));
+	const images = [...existingImagesFromForm(formData), ...newImages];
+
+	const update = await db.collection<Trip>(TRIPS_COLLECTION).updateOne(
+		{
+			_id: new ObjectId(tripId),
+			userId: new ObjectId(userId)
+		},
+		{
+			$set: {
+				countryCode: result.data.countryCode.toUpperCase(),
+				placeName: result.data.placeName,
+				dateFrom: result.data.dateFrom,
+				dateTo: result.data.dateTo || undefined,
+				notes: result.data.notes || undefined,
+				images,
+				updatedAt: new Date()
+			}
+		}
+	);
+
+	return update.matchedCount > 0;
 }

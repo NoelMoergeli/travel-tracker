@@ -357,6 +357,35 @@ input {
 	padding: 10px;
 }
 
+.image-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+	gap: 12px;
+}
+
+.image-choice {
+	display: grid;
+	gap: 8px;
+	border: 1px solid #d9e1ea;
+	border-radius: 8px;
+	padding: 8px;
+	background: #fbfcfe;
+	color: #4d5f75;
+}
+
+.image-choice img {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.image-choice span {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
 @media (max-width: 720px) {
 	.header-inner {
 		align-items: flex-start;
