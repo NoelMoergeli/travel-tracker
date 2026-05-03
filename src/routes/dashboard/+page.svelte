@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import WorldMap from '$lib/components/WorldMap.svelte';
 	import { getCountryOptions, type CountryOption } from '$lib/countries';
 	import type { ActionData, PageData } from './$types';
@@ -12,6 +13,7 @@
 	let query = $state('');
 	let selectedCountry = $state<CountryOption | null>(null);
 	let deleteCandidate = $state<PublicTrip | null>(null);
+	let galleryTrip = $state<PublicTrip | null>(null);
 
 	const searchResults = $derived.by(() => {
 		const normalized = query.trim().toLowerCase();
@@ -58,6 +60,12 @@
 			{#if visibleTrips.length}
 				{#each visibleTrips as trip}
 					<article class="trip-card">
+						{#if trip.photos.length}
+							<button class="trip-photo-preview" type="button" onclick={() => (galleryTrip = trip)}>
+								<img src={trip.photos[0].url} alt={trip.photos[0].caption || `${trip.placeName} photo`} />
+							</button>
+						{/if}
+
 						<div>
 							<p class="trip-country">{trip.countryName}</p>
 							<h2>{trip.placeName}</h2>
@@ -68,6 +76,11 @@
 						</div>
 
 						<div class="trip-actions">
+							{#if trip.photos.length}
+								<button class="button button-secondary" type="button" onclick={() => (galleryTrip = trip)}>
+									View Gallery
+								</button>
+							{/if}
 							<a class="button button-secondary" href={`/trip/${trip.id}/edit`}>Edit</a>
 							<button class="button button-danger" type="button" onclick={() => (deleteCandidate = trip)}>
 								Delete
@@ -158,6 +171,30 @@
 				</button>
 				<button class="button button-danger" type="submit">Delete Trip</button>
 			</form>
+		</dialog>
+	</div>
+{/if}
+
+{#if galleryTrip}
+	<div class="modal-layer">
+		<button
+			class="modal-backdrop"
+			type="button"
+			aria-label="Close gallery"
+			onclick={() => (galleryTrip = null)}
+		></button>
+		<dialog open class="modal gallery-modal" aria-labelledby="gallery-title">
+			<div class="modal-header">
+				<div>
+					<p class="eyebrow">{galleryTrip.countryName}</p>
+					<h2 id="gallery-title">{galleryTrip.placeName} Gallery</h2>
+				</div>
+				<button class="button button-secondary" type="button" onclick={() => (galleryTrip = null)}>
+					Close
+				</button>
+			</div>
+
+			<PhotoGrid photos={galleryTrip.photos} />
 		</dialog>
 	</div>
 {/if}
