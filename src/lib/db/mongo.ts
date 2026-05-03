@@ -1,29 +1,44 @@
-import { MongoClient, Db } from 'mongodb';
+import dotenv from 'dotenv';
+import { Db, MongoClient } from 'mongodb';
 
-const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://127.0.0.1:27017';
-const DB_NAME = process.env.MONGODB_DB ?? 'travel-tracker';
+dotenv.config({ path: '.env' });
 
-// Avoid multiple clients in development hot-reloads
+const MONGODB_URI =
+	process.env.MONGODB_URI ?? process.env.DB_URI ?? process.env.DB_URL ?? 'mongodb://127.0.0.1:27017';
+const DB_NAME = process.env.MONGODB_DB ?? process.env.DB_NAME ?? 'travel-tracker';
+
 declare global {
-  // eslint-disable-next-line no-var
-  var __mongoClientPromise__: Promise<MongoClient> | undefined;
+	var __travel_tracker_mongo__:
+		| {
+				client: MongoClient;
+				db: Db;
+		  }
+		| undefined;
 }
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+let cached = globalThis.__travel_tracker_mongo__;
 
-client = new MongoClient(MONGODB_URI);
-clientPromise = globalThis.__mongoClientPromise__ ?? client.connect();
-if (!globalThis.__mongoClientPromise__) globalThis.__mongoClientPromise__ = clientPromise;
+export async function connectToDatabase(): Promise<Db> {
+	if (cached) return cached.db;
 
-export async function getClient(): Promise<MongoClient> {
-  return clientPromise;
+	const client = new MongoClient(MONGODB_URI);
+	await client.connect();
+
+	const db = client.db(DB_NAME);
+	cached = { client, db };
+	globalThis.__travel_tracker_mongo__ = cached;
+
+	return db;
 }
 
 export async function getDb(): Promise<Db> {
-  const c = await getClient();
-  return c.db(DB_NAME);
+	return cached?.db ?? connectToDatabase();
 }
 
-export default getDb;
+export async function getClient(): Promise<MongoClient> {
+	if (cached) return cached.client;
+	await connectToDatabase();
+	return cached!.client;
+}
 
+export default connectToDatabase;

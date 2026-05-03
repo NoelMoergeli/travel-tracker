@@ -12,12 +12,12 @@ const config = {
 		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 		files: {
-			appTemplate: 'src-new/app.html',
+			appTemplate: 'src/app.html',
 			hooks: {
-				server: 'src-new/hooks.server.ts'
+				server: 'src/hooks.server.ts'
 			},
-			lib: 'src-new/lib',
-			routes: 'src-new/routes'
+			lib: 'src/lib',
+			routes: 'src/routes'
 		}
 	}
 };
