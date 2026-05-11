@@ -612,7 +612,7 @@ Dokumentiert Erweiterungen über den Mindestumfang hinaus.
 Aufgaben und offene Probleme wurden schrittweise während der Entwicklung dokumentiert und priorisiert. Grössere Funktionen wie Login, Kartenintegration oder CRUD-Operationen wurden in einzelne Arbeitsschritte unterteilt und nacheinander umgesetzt. Fehler und Verbesserungen wurden laufend getestet und angepasst. Dafür wurden keine spezifischen Issue-Tracking-Tools verwendet, sondern die Entwicklung erfolgte anhand eines manuell vordefinierten Plans in kleinen, beschreibenden Commits, die jeweils eine abgeschlossene Änderung oder Funktionalität darstellen.
 
 ### Commit-Praxis:
-Die Entwicklung wurde in kleine, beschreibende Commits aufgeteilt. Die Commit-Messages folgen einem einfachen Prefix-Schema, damit direkt erkennbar ist, welche Art von Änderung vorgenommen wurde:
+Die Entwicklung wurde in kleine, beschreibende Commits (auf Englisch) aufgeteilt. Die Commit-Messages folgen einem einfachen Prefix-Schema, damit direkt erkennbar ist, welche Art von Änderung vorgenommen wurde:
   - `feat`: Neue Funktionalität oder ein neuer fachlicher Teil der Anwendung, z. B. Trip-Feldvalidierung, Foto-Upload oder Speicherung von Fotos direkt im Trip-Dokument.
   - `fix`: Fehlerbehebungen oder Korrekturen an bestehendem Verhalten, z. B. korrekte Anzeige von Validierungsfehlern, stabile Dashboard-Höhen oder korrigierte Filterlogik.
   - `refactor`: Interne Umstrukturierungen ohne beabsichtigte Funktionsänderung, z. B. Verschieben von UI-Logik in Komponenten, Entfernen alter Legacy-Pfade oder Vereinfachung der Datenmodelle.
@@ -634,7 +634,15 @@ Die folgende Deklaration beschreibt den Einsatz von KI im Projekt.
 
 ### 6.2 Prompt-Vorgehen
 
-Die Prompts wurden auf konkrete Arbeitsschritte ausgerichtet, z. B. "Foto-Upload direkt im Trip-Dokument speichern", "Dashboard-Höhe stabilisieren" oder "README auf Deutsch aktualisieren". Bei technischen Änderungen wurden bestehende Dateien zuerst inspiziert und danach gezielte, kleine Änderungen umgesetzt. Die Resultate wurden jeweils mit `npm.cmd run build` geprüft.
+#### Agent Modus
+- Die Prompts wurden auf konkrete Arbeitsschritte ausgerichtet, z. B. "Foto-Upload direkt im Trip-Dokument speichern" oder "Dashboard-Höhe stabilisieren".
+- Dafür habe ich teils IntelliJ AI Chat (mit meinem ChatGPT API-Key) bzw. GitHub Copilot, im Agent Modus genutzt. Für letzeres musste ich warten bis meine Education License genehmigt war, damit ich die Agent-Funktionalität mit Premium Modellen nutzen konnte.
+
+#### Chat Prompts
+Für kleinere spezifische Fragen zu SvelteKit, MongoDB oder anderen Änderungen z.B. am CSS-Layout habe ich kurze Fragen im Ask Modus im AI Chat-Fenster gestellt.
+
+#### Inline-Vorschläge
+Für kleinere Ergänzungen und Boilerplate beim manuellen Coden habe ich Inline-Vorschläge genutzt.
 
 ### 6.3 Reflexion
 
@@ -660,13 +668,16 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+---
+
 ### Lokale Installation:
 
 ```bash
 npm install
 ```
 
-- **Umgebungsvariablen:**
+**Umgebungsvariablen:**
 
 ```env
 MONGODB_URI=mongodb://127.0.0.1:27017
@@ -676,8 +687,7 @@ SESSION_DAYS=30
 ```
 
 Alternativ akzeptiert die MongoDB-Verbindung auch `DB_URI`, `DB_URL` oder `DB_NAME`.
-
-- **Entwicklung starten:**
+**Entwicklung starten:**
 
 ```bash
 npm run dev
@@ -689,7 +699,7 @@ Unter Windows kann auch verwendet werden:
 npm.cmd run dev
 ```
 
-- **Build prüfen:**
+**Build prüfen:**
 
 ```bash
 npm run build
