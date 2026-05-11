@@ -403,59 +403,138 @@ Vor dem Löschen einer Reise erscheint ein Bestätigungsdialog, um versehentlich
 ### 3.4 Prototype
 
 #### 3.4.1. Entwurf (Design)
+Beschreibt die Gestaltung und Interaktion.
+> **Hinweis:** Hier wird der **Prototyp** beschrieben, nicht das **Mockup**.
 
 - **Informationsarchitektur:**
-  - `/login`: Anmeldung.
-  - `/register`: Registrierung.
-  - `/dashboard`: Hauptansicht mit Trips, Länder-Suche und Weltkarte.
-  - `/trip/new`: Neue Reise erfassen.
-  - `/trip/[id]/edit`: Reise bearbeiten und Fotos verwalten.
-  - `/logout`: Session beenden.
+  - Der Prototyp ist als geschüzte Travel-Tracker-Webapplikation aufgebaut. Nicht eingeloggte Benutzer bewegen sich nur zwischen Login und Registrierung. Nach erfolgreicher Anmeldung führt der Hauptfluss direkt ins Dashboard.
+  - Die globale Navigation liegt im Sticky Header. Nicht eingeloggte Benutzer sehen `Log in` und `Create account`; eingeloggte Benutzer sehen `Add Trip`, `Dashboard`, `Log out` sowie den aktuellen Benutzernamen mit Initialen-Avatar.
+  - Die Hauptbereiche aus Nutzersicht:
+    - **Login:** Anmeldung mit Benutzername und Passwort.
+    - **Registrierung:** neues Benutzerkonto mit Benutzername und Passwort erstellen; danach automatische Anmeldung.
+    - **Dashboard:** zentrale Arbeitsansicht mit Reiseübersicht, Filterstatus, scrollbarer Trip-Liste, Ländersuche, interaktiver Weltkarte, Galerie-Modal und Löschdialog.
+    - **Add Trip:** Formular zum Erfassen einer neuen Reise mit Land, Ort/Stadt, Startdatum, optionalem Enddatum, Notizen und optionalen Fotos.
+    - **Edit Trip:** Formular zum Bearbeiten einer bestehenden Reise inklusive bestehender Fotos, neuen Fotos und Entfernen/Undo von Fotos.
+    - **Logout:** beendet die Session und entfernt das Session-Cookie.
+  - Der wichtigste End-to-End-Flow im Prototyp ist: registrieren oder einloggen, Dashboard öffnen, Land über Karte oder Suche auswählen, Trip erfassen, Trip in der Liste sehen, Galerie öffnen, Trip bearbeiten oder löschen.
+
 - **User Interface Design:**
-  - Ruhiges Dashboard mit Kartenpanel und Reiseliste.
-  - Länder-Suche als eigenes Panel über der Karte.
-  - Trip Cards mit Ort, Land, Datum, Notizen und optionalem Fotovorschaubild.
-  - Fotogalerie als Modal mit responsivem Grid.
-  - Slideshow als fullscreen Lightbox mit Tastatursteuerung.
+  - **Login / Registrierung:** Beide Auth-Screens verwenden ein schmales zentriertes Panel mit klaren Formularfeldern. Die primäre Aktion ist jeweils als dunkler Primary Button gestaltet, die alternative Navigation als Secondary Button.
+    - Login Screen:
+      ![img.png](doc/imgages/prototype_login.png)
+    - Registrierungsscreen:
+      ![img.png](doc/imgages/prototype_registration.png)
+  - **Dashboard:** Die Ansicht ist zweispaltig aufgebaut. Links befindet sich ein fest hohes Overview-Panel mit Titel, Anzahl gespeicherter Reisen, optionalem aktivem Länderfilter und scrollbarer Trip-Liste. Rechts stehen oben die Ländersuche und darunter die Weltkarte.
+    - ![img.png](doc/imgages/prototype_dashboard.png)
+  - **Trip Cards:** Jede Reise wird als Karte mit Land, Ort/Stadt, Datumsspanne und optionalen Notizen angezeigt. Wenn Fotos vorhanden sind, wird das erste Foto als 16:9-Vorschau angezeigt und ein `View Gallery`-Button eingeblendet. Weitere Aktionen sind `Edit` und `Delete`.
+    - Trip card ohne Foto
+      
+      ![img.png](doc/imgages/prototype_trip_card_without_photo.png)
+    - Trip card mit Foto
+
+      ![img.png](doc/imgages/prototype_trip_card_with_photo.png)
+      
+  - **Ländersuche und Karte:** Die Suche zeigt maximal acht Treffer nach Ländername oder ISO-Code. Die Weltkarte markiert besuchte Länder dunkelblau, das aktuell selektierte Land gelb und Hover-/Focus-Zustaende hellblau. Ein Klick oder Tastaturauswahl auf ein Land filtert die Trip-Liste.
+    - Gefiltert nach "Br" mit Brasilien bereits ausgewählt:
+     
+      ![img.png](doc/imgages/prototype_filtered_by_br.png)
+  - **Add/Edit Formulare:** Die Formulare nutzen ein zweispaltiges Grid für Land, Ort/Stadt und Datum, darunter Notizen und Fotoverwaltung. Der Country Picker zeigt den menschenlesbaren Ländernamen mit ISO-Code, speichert aber nur den ISO-Alpha-2-Code.
+    - Add-Trip-Formular ohne Fotos:
+      ![img.png](doc/imgages/prototype_add_trip_no_photos.png)
+    - Edit-Trip-Formular mit bestehendem Foto sowie neuem Foto im Upload:
+      ![img.png](doc/imgages/prototype_edit_trip_with_photos.png)
+  - **Fotoverwaltung:** Fotos werden im Formular als bestehende Fotos angezeigt. Neue Fotos werden lokal validiert, in Base64 umgewandelt und als Hidden Fields mit dem Trip-Formular gespeichert. Entfernte Fotos können vor dem Speichern wiederhergestellt werden.
+    - Sihe Bilder im Add bzw. Edit-Trip-Formular weiter oben.
+  - **Galerie und Slideshow:** Die Galerie öffnet als Modal im Dashboard. Ein Klick auf ein Bild startet eine fullscreen Lightbox mit Bildzähler, Caption, `Previous`/`Next` bei mehreren Bildern und `Close`. Die Lightbox unterstützt `Escape`, `ArrowLeft` und `ArrowRight`.
+    - Galerie Modal 
+      ![img.png](doc/imgages/prototype_gallery_modal.png)
+    - Galerie Lightbox
+    - ![img.png](doc/imgages/prototype_gallery_lightbox.png)
+  - **Löschen:** Beim Löschen einer Reise erscheint ein modaler Bestätigungsdialog. Die Reise wird erst nach dem Submit des Dialogformulars serverseitig gelöscht.
+    - Delete-Dialog
+    - ![img.png](doc/imgages/prototype_delete_dialog.png)
+
 - **Designentscheidungen:**
-  - Die Karte und die Trip-Liste haben eine abgestimmte Höhe.
-  - Die Trip-Liste scrollt intern, damit die Karte nicht mit der Anzahl Trips wächst.
-  - Die Fotofunktion ist in bestehende Trip-Formulare integriert statt als separate Seite umgesetzt.
+  - Der Prototyp bleibt bewusst arbeitsorientiert: Dashboard, Karte und Trip-Liste sind direkt sichtbar; es gibt keine Landingpage und keine Marketing-Ansicht.
+  - Das Dashboard ist Desktop-first umgesetzt, weil Karte, Suche und Reiseübersicht gleichzeitig sichtbar sein sollen. Für kleinere Viewports bricht das Layout auf eine Spalte um; die Karte steht dann oberhalb der Liste.
+  - Die Trip-Liste scrollt innerhalb eines festen Panels. Dadurch bleibt die Weltkarte stabil sichtbar, auch wenn viele Reisen gespeichert sind.
+  - Die Karte ist nicht nur Visualisierung, sondern auch Filtersteuerung. So müssen Benutzer nicht zwischen separaten Filterseiten und Kartenansicht wechseln.
+  - Der Prototyp verwendet eine reduzierte Farbpalette: dunkles Blau für Text und Primary-Aktionen, Petrol für besuchte Länder/Primary Buttons, Gelb für Auswahl und Avatar, Rot für destruktive Aktionen.
+  - Fotos sind direkt in die Trip-Formulare integriert. Dadurch bleibt die Reise das zentrale Objekt; es gibt keine separate Medienverwaltung.
+  - Der Delete-Flow ist absichtlich zweistufig, weil Löschen dauerhaft ist und ohne Bestätigung zu leicht versehentlich ausgelöst würde.
 
 #### 3.4.2. Umsetzung (Technik)
+Fasst die technische Realisierung zusammen.
 
 - **Technologie-Stack:**
-  - Svelte 5 und SvelteKit.
-  - TypeScript.
-  - MongoDB Node Driver.
-  - Argon2 für Passwort-Hashing.
-  - Zod für serverseitige Validierung.
-  - D3 Geo und TopoJSON für die Weltkarte.
-  - `i18n-iso-countries` für Länder-Codes und Ländernamen.
+  - **Framework:** Svelte 5 mit SvelteKit 2.
+  - **Sprache:** TypeScript.
+  - **Build-System:** Vite.
+  - **Datenbank:** MongoDB über den offiziellen MongoDB Node Driver.
+  - **Authentifizierung:** Benutzername/Passwort, Passwort-Hashing mit `argon2`, serverseitige Sessions mit UUID und HTTP-only Cookie.
+  - **Validierung:** `zod` für serverseitige Formularvalidierung; zusätzliche clientseitige Feldvalidierung für Trip-Formulare und Fotoauswahl.
+  - **Karte:** `d3-geo` für Projektion/Pfade und `topojson-client` für die Verarbeitung der TopoJSON-Weltkarte.
+  - **Länderdaten:** `i18n-iso-countries` für ISO-Alpha-2-Codes und englische Ländernamen, plus Alias-Mapping für Ländernamen aus der Weltkarte.
+  - **IDs:** `uuid` für Session-IDs und `crypto.randomUUID()` für neue Foto-IDs im Browser.
+
 - **Tooling:**
-  - Vite/SvelteKit Build.
-  - Lokale Entwicklung über `npm.cmd run dev` bzw. `npm run dev`.
-  - Build-Prüfung über `npm.cmd run build` bzw. `npm run build`.
+  - Entwicklung lokal über `npm run dev` bzw. unter Windows `npm.cmd run dev`.
+  - Build-Prüfung über `npm run build` bzw. `npm.cmd run build`.
+  - Preview über `npm run preview`.
+  - Konfiguration über `.env`; die MongoDB-Verbindung akzeptiert `MONGODB_URI`, `DB_URI` oder `DB_URL` sowie `MONGODB_DB` oder `DB_NAME`.
+  - IDE/Editor: Projekt ist lokal als SvelteKit-/TypeScript-Projekt strukturiert; JetBrains-Projektdateien und VS-Code-Empfehlungen sind im Repository vorhanden.
+  - KI-Einsatz wird separat in Kapitel **6. KI-Deklaration** beschrieben.
+
 - **Struktur & Komponenten:**
-  - `src/lib/components/WorldMap.svelte`: interaktive Weltkarte.
-  - `src/lib/components/CountrySearch.svelte`: Länder-Suche oberhalb der Karte.
-  - `src/lib/components/CountryPicker.svelte`: Länderauswahl in Trip-Formularen.
-  - `src/lib/components/TripList.svelte`: scrollbare Liste der Reisen.
-  - `src/lib/components/TripCard.svelte`: einzelne Reise-Karte.
-  - `src/lib/components/PhotoManager.svelte`: Fotos im Formular hinzufügen/entfernen.
-  - `src/lib/components/PhotoGrid.svelte`: Galerieansicht.
-  - `src/lib/components/PhotoLightbox.svelte`: fullscreen Slideshow.
-  - `src/lib/server/trips.ts`: zentrale serverseitige Trip-Logik.
-  - `src/lib/db/mongo.ts`: MongoDB-Verbindung.
+  - `src/routes/+layout.svelte`: App-Shell, Header, Navigation, Benutzeranzeige und globales Styling.
+  - `src/routes/+layout.server.ts`: stellt `locals.user` für das Layout bereit.
+  - `src/hooks.server.ts`: liest das Session-Cookie, validiert die Session gegen MongoDB und setzt `event.locals.user`.
+  - `/login`: `src/routes/login/+page.svelte` und `+page.server.ts`; Login-Formular, Argon2-Verify, Session-Erstellung und Redirect ins Dashboard.
+  - `/register`: `src/routes/register/+page.svelte` und `+page.server.ts`; Registrierung, Username-Prüfung, Passwort-Hashing, Session-Erstellung und Redirect.
+  - `/dashboard`: `src/routes/dashboard/+page.svelte` und `+page.server.ts`; lädt alle Trips des eingeloggten Benutzers, sortiert nach `dateFrom` und `createdAt`, rendert Dashboard und enthält die Action `deleteTrip`.
+  - `/trip/new`: `src/routes/trip/new/+page.svelte` und `+page.server.ts`; lädt optional ein vorausgewähltes Land aus `?country=XX`, erstellt neue Trips und leitet danach zum Dashboard weiter.
+  - `/trip/[id]/edit`: `src/routes/trip/[id]/edit/+page.svelte` und `+page.server.ts`; lädt nur Trips des eingeloggten Benutzers, aktualisiert bestehende Trips und liefert 404 bei fremden oder nicht existierenden IDs.
+  - `/logout`: `src/routes/logout/+server.ts`; löscht die Session serverseitig und entfernt das Cookie.
+  - `/api/uploads/raw`: `src/routes/api/uploads/raw/+server.ts`; geschützter Legacy-Endpunkt zum Ausliefern alter GridFS-Bilder, sofern die Bild-URL zu einem Trip des eingeloggten Benutzers gehört.
+  - `WorldMap.svelte`: lädt `countries-110m.json` von jsDelivr, rendert SVG-Länder, markiert besuchte und selektierte Länder und bietet Maus-/Tastaturinteraktion.
+  - `CountrySearch.svelte`: Suche im Dashboard mit Trefferliste und Auswahl-Callback.
+  - `CountryPicker.svelte`: Länderauswahl in Formularen mit Hidden Field für den ISO-Code und sichtbarem Suchfeld.
+  - `TripList.svelte`: scrollbare Trip-Liste, Empty State und optionaler `Record Trip`-Button bei aktivem Länderfilter.
+  - `TripCard.svelte`: Darstellung einer einzelnen Reise mit Fotovorschau, Galerie-, Edit- und Delete-Aktion.
+  - `PhotoManager.svelte`: Foto-Upload im Formular, lokale Dateivalidierung, Base64-Konvertierung, Hidden Fields, Remove und Undo.
+  - `PhotoGrid.svelte`: Galerie-Grid im Dashboard-Modal.
+  - `PhotoLightbox.svelte`: fullscreen Slideshow mit Tastatursteuerung.
+  - `src/lib/server/trips.ts`: Trip-Validierung, FormData-Mapping, Foto-Normalisierung, CRUD-Funktionen, Public DTO Mapping.
+  - `src/lib/server/uploads.ts`: Legacy-GridFS-Upload für das alte `images`-Feld.
+  - `src/lib/db/mongo.ts`: MongoDB-Verbindung mit globalem Cache für Development.
+  - `src/lib/auth/session.ts`: Session erstellen, laden und löschen.
+  - `src/lib/photos.ts`: Foto-Konstanten, Dateivalidierung und Erzeugung der Bildquelle.
+  - `src/lib/countries/index.ts`: Länderoptionen, Ländernamen und Mapping von Kartennamen auf ISO-Codes.
+
 - **Daten & Schnittstellen:**
-  - Benutzer werden in der Collection `users` gespeichert.
-  - Sessions werden in der Collection `sessions` gespeichert.
-  - Reisen werden in der Collection `trips` gespeichert.
-  - Das Trip-Dokument enthält weiterhin die bestehenden Pflichtfelder und wurde nur optional erweitert.
-  - Aktuelles Foto-Modell im Trip-Dokument:
+  - **Collections:** `users` speichert Benutzerkonto und Passwort-Hash, `sessions` speichert serverseitige Sessions, `trips` speichert Reisen, `uploads.files`/`uploads.chunks` speichern alte GridFS-Bilder.
+  - **Trip-Dokument:**
 
 ```ts
-photos?: {
+interface Trip {
+  _id?: ObjectId;
+  userId: ObjectId;
+  countryCode: string;
+  placeName: string;
+  dateFrom: string;
+  dateTo?: string;
+  notes?: string;
+  images?: string[];
+  photos?: StoredTripPhoto[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+```
+
+  - **Aktives Foto-Modell im Trip-Dokument:**
+
+```ts
+interface TripPhoto {
   id: string;
   filename: string;
   mimeType: string;
@@ -463,94 +542,77 @@ photos?: {
   data: string;
   caption?: string;
   uploadedAt: Date;
-}[];
+}
 ```
 
-  - `data` enthält das Bild als Base64-String.
-  - Gerendert wird über `data:{mimeType};base64,{data}`.
-  - Fehlende Fotos werden als leeres Array behandelt.
-  - Alte Reisen ohne `photos` bleiben gültig.
+  - **Legacy-Foto-Modell:**
+
+```ts
+interface LegacyTripPhoto {
+  id: string;
+  url: string;
+  caption?: string;
+  uploadedAt: Date;
+}
+```
+
+  - Das aktive UI nutzt `photos` mit Base64-Daten. Gerendert wird über `data:{mimeType};base64,{data}`.
+  - Alte Daten bleiben kompatibel: `images?: string[]` kann weiterhin existieren; `LegacyTripPhoto` mit `legacyUrl` wird beim Public Mapping unterstützt. Die neue UI speichert neue Galerie-Fotos jedoch im `photos`-Array.
+  - Alle Trip-Abfragen filtern nach `userId`. Dadurch kann ein Benutzer nur eigene Reisen laden, bearbeiten, löschen und Legacy-Uploads abrufen.
+  - Formular-Submit erfolgt über SvelteKit Form Actions. Fehler werden mit `fail(...)` an die Seite zurückgegeben, inklusive Feldfehlern, Formwerten und Foto-Zwischenstand.
+  - Die Weltkarte lädt ihre TopoJSON-Daten clientseitig von `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json`.
+
 - **Validierung:**
-  - Länder-Code ist ein ISO-Alpha-2-Code.
-  - Reisedaten werden geprüft; das Enddatum darf nicht vor dem Startdatum liegen.
-  - Foto-Uploads erlauben `image/jpeg`, `image/png` und `image/webp`.
-  - Maximal 2 MB pro Foto.
-  - Maximal 10 Fotos pro Reise.
-  - Bildunterschriften sind auf 160 Zeichen begrenzt.
+  - Registrierung: Benutzername mindestens 3 Zeichen, Passwort mindestens 6 Zeichen, Benutzername muss eindeutig sein.
+  - Login: Benutzername und Passwort sind Pflichtfelder; Passwort wird mit `argon2.verify` geprüft.
+  - Trip: Land ist ein ISO-Alpha-2-Code, Ort/Stadt ist Pflicht, Startdatum ist Pflicht, Enddatum darf nicht vor dem Startdatum liegen.
+  - Fotos: erlaubt sind `image/jpeg`, `image/png` und `image/webp`; maximal 2 MB pro Foto; maximal 10 Fotos pro Reise; Caption maximal 160 Zeichen.
+  - Legacy-GridFS-Uploads: maximal 5 Dateien pro Submit, standardmässig maximal 5 MB pro Datei und nur MIME-Typen mit Prefix `image/`.
+
 - **Deployment:**
-  - Die App ist für SvelteKit `adapter-auto` vorbereitet.
-  - `netlify.toml` ist vorhanden.
-  - Eine konkrete Produktions-URL ist in diesem Repository nicht dokumentiert.
+  - Die Anwendung ist mit `@sveltejs/adapter-auto` für ein kompatibles SvelteKit-Deployment vorbereitet.
+  - `netlify.toml` ist vorhanden und nutzt `npm run build`.
+  - TODO: Produktions- oder Test-Deployment-URL eintragen, sobald die App separat deployed ist.
+  - TODO: Falls Netlify verwendet wird, prüfen, ob das Publish-Verzeichnis für die verwendete SvelteKit-Adapter-Ausgabe korrekt ist.
+
 - **Besondere Entscheidungen:**
-  - Fotos werden direkt im Trip-Dokument gespeichert, um keine zusätzliche Collection und keinen externen Bildhost zu benötigen.
-  - Für ältere Upload-Logik existiert noch Kompatibilitätscode (`images?: string[]` und Legacy-Foto-Fallbacks), die aktive UI verwendet aber den neuen Foto-Upload.
-  - Die Dashboard-Höhe wird bewusst begrenzt; nur die Reiseliste scrollt.
+  - Sessions werden serverseitig in MongoDB gespeichert und per HTTP-only Cookie referenziert. Das ist für den Prototyp einfacher als OAuth und trotzdem klar vom Frontend getrennt.
+  - Fotos werden im aktiven Flow direkt im Trip-Dokument gespeichert. Das reduziert Infrastruktur und vermeidet externes File-Hosting, ist aber wegen Dokumentgrösse und Base64-Overhead nur für kleine Prototyp-Fotos geeignet.
+  - Die ältere GridFS-Upload-Logik bleibt im Code, damit vorhandene `images`-Daten und alte Upload-URLs nicht sofort ungültig werden.
+  - Die Karte verwendet externe TopoJSON-Daten. Dadurch ist das Repository kleiner, aber die Karte hängt im Browser von Netzwerkzugriff auf jsDelivr ab.
+  - Das UI ist bewusst ohne globalen Client Store umgesetzt. Der wichtigste Zustand, z. B. selektiertes Land, Suchquery, Galerie, Lightbox und Löschkandidat, bleibt lokal in der Dashboard-Seite.
+  - Nach Create/Update wird per Redirect ins Dashboard gewechselt. Dadurch bleiben Datenstand und URL klar, statt Formularzustand und Dashboard parallel synchronisieren zu müssen.
 
 ### 3.5 Validate
-
-- **URL der getesteten Version:** Lokale Entwicklungsumgebung, typischerweise `http://127.0.0.1:5173/`.
-- **Ziele der Prüfung:**
-  - Funktioniert Registrierung/Login?
-  - Werden nur eigene Reisen angezeigt?
-  - Bleibt das Dashboard stabil, auch wenn viele Trips vorhanden sind?
-  - Können Länder über Karte und Suche ausgewählt werden?
-  - Können Fotos hochgeladen, angezeigt und entfernt werden?
-- **Vorgehen:** Funktionale Tests während der Entwicklung, Build-Prüfung nach relevanten Änderungen.
-- **Stichprobe:** Entwickler-/Reviewer-Test mit lokalen Testdaten.
-- **Aufgaben/Szenarien:**
-  - Benutzer registrieren und einloggen.
-  - Neue Reise mit Land, Ort und Datum erstellen.
-  - Reise bearbeiten und Foto hinzufügen.
-  - Dashboard öffnen und Galerie/Slideshow verwenden.
-  - Reise löschen.
-- **Kennzahlen & Beobachtungen:**
-  - `npm.cmd run build` wurde wiederholt erfolgreich ausgeführt.
-  - Mehrere UI-Probleme wurden korrigiert, z. B. Map-Fokusrahmen, Dashboard-Höhe und doppelte Foto-Upload-Bereiche.
-- **Zusammenfassung der Resultate:** Die Kernworkflows sind im aktuellen Prototyp umgesetzt. Bestehende Trips ohne Fotos funktionieren weiterhin. Die Fotogalerie verwendet nun direkt in MongoDB gespeicherte Bilddaten.
-- **Abgeleitete Verbesserungen:**
-  - Automatisierte Tests ergänzen.
-  - Bildkomprimierung vor dem Speichern prüfen.
-  - Migration oder Bereinigung alter `images`/Legacy-Foto-Daten planen, falls die App produktiv weiterentwickelt wird.
+- **URL der getesteten Version** (separat deployt)
+- **Ziele der Prüfung:** _[welche Fragen sollen beantwortet werden?]_
+- **Vorgehen:** _[moderiert/unmoderiert; remote/on-site]_
+- **Stichprobe:** _[Mit wem wurde getestet? Profil; Anzahl]_
+- **Aufgaben/Szenarien:** _[Ausformulierte Testaufgaben]_
+- **Kennzahlen & Beobachtungen:** _[z. B. Erfolgsquote, Zeitbedarf, qualitative Findings]_
+- **Zusammenfassung der Resultate:** _[Wichtigste Erkenntnisse; 2-4 Sätze]_
+- **Abgeleitete Verbesserungen:** _[Anforderungen, die als nächstes umgesetzt werden sollten, priorisiert, kurz begründet; falls Verbesserungen im Prototyp konkret umgesetzt wurden: In Kap. 4 dokumentieren]_
 
 ## 4. Erweiterungen
+Dokumentiert Erweiterungen über den Mindestumfang hinaus.
+> **Hinweis:** Jede Erweiterung ist separat nach dem folgenden Schema zu beschreiben.
 
-### 4.1 Interaktive Weltkarte
+### _[4.x Kurzbeschreibung / Titel]_
+- **Beschreibung & Nutzen:** _[Was wurde erweitert? Warum?]_
+- **Wo umgesetzt:** _[Wie und wo wurde es gemacht? Frontend, Backend, Datenbank?]_
+- **Referenz:** _[Wo wird die Erweiterung auch noch beschrieben, z.B. Screenshot oder Beschreibung in einem anderen Kapitel]_
+- **Aus Evaluation abgeleitet?:** _[Wurde diese Erweiterung als Folge eines in der Evaluation identifizierten Issues implementiert?]_
 
-- **Beschreibung & Nutzen:** Die Weltkarte zeigt besuchte Länder farblich an und erlaubt die Auswahl eines Landes direkt auf der Karte.
+> Das folgende **Beispiel** wurde bewusst kurz gehalten. Erweiterungen dürfen auch ausführlicher beschrieben werden.
+
+### 4.1 Tabelle nach Kategorien filtern
+- **Beschreibung & Nutzen:** Tabelle X kann nach Kategorie gefiltert werden, weil User typischerweise nur an einer bestimmten Kategorie interessiert sind.
 - **Wo umgesetzt:**
-  - Frontend: `src/lib/components/WorldMap.svelte`.
-  - Datenbasis: Trips aus MongoDB liefern die besuchten Länder.
-- **Referenz:** Dashboard unter `/dashboard`.
-- **Aus Evaluation abgeleitet?:** Ja, aus dem Bedarf nach einer visuellen Übersicht statt einer reinen Liste.
-
-### 4.2 Länder-Suche und Country Picker
-
-- **Beschreibung & Nutzen:** Länder können über Name oder ISO-Code gesucht werden. In Formularen wird der Ländername angezeigt, gespeichert wird aber nur der ISO-Code.
-- **Wo umgesetzt:**
-  - `src/lib/components/CountrySearch.svelte`.
-  - `src/lib/components/CountryPicker.svelte`.
-  - `src/lib/countries/index.ts`.
-- **Referenz:** Dashboard, New Trip und Edit Trip.
-- **Aus Evaluation abgeleitet?:** Ja, weil die Eingabe eines reinen Länder-Codes für Benutzer unklar sein kann.
-
-### 4.3 Fotogalerie und Slideshow
-
-- **Beschreibung & Nutzen:** Benutzer können Fotos pro Reise hochladen, in einer Galerie betrachten und als Slideshow öffnen.
-- **Wo umgesetzt:**
-  - Frontend: `PhotoManager`, `PhotoGrid`, `PhotoLightbox`, `TripCard`.
-  - Backend: `src/lib/server/trips.ts`.
-  - Datenbank: optionales `photos`-Array im bestehenden Trip-Dokument.
-- **Referenz:** Edit/New Trip und Dashboard-Galerie.
-- **Aus Evaluation abgeleitet?:** Ja, weil Reiseerinnerungen nicht nur textlich, sondern auch visuell festgehalten werden sollen.
-
-### 4.4 Scrollbare Reiseliste im Dashboard
-
-- **Beschreibung & Nutzen:** Viele Trips sollen die Karte nicht vergrössern oder die Suche verdrängen. Die Reiseliste scrollt deshalb in einem festen Panel.
-- **Wo umgesetzt:**
-  - `src/lib/components/TripList.svelte`.
-  - Layout-Regeln in `src/lib/styles/global.css`.
-- **Referenz:** Dashboard.
-- **Aus Evaluation abgeleitet?:** Ja, aus Layout-Problemen bei mehreren Trips.
+  - **Frontend:** Tabelle mit Dropdown in Datei ...
+  - **Backend:** Form Action ... in Datei ...
+  - **Datenbank:** MongoDB-Query in Datei ...
+- **Referenz:** Screenshot in Kap. x.y
+- **Aus Evaluation abgeleitet?:** Ja, Issue x.y
 
 ## 5. Projektorganisation
 
@@ -612,7 +674,7 @@ Die folgende Deklaration beschreibt den Einsatz von KI im Projekt.
 
 - **Eingesetzte Tools:** OpenAI ChatGPT/Codex in der Entwicklungsumgebung.
 - **Zweck & Umfang:** KI wurde unterstützend eingesetzt für Code-Änderungen, Refactoring, Fehlersuche, Dokumentation, Formulierungen und Build-/Statusprüfungen.
-- **Eigene Leistung:** Architekturentscheidungen, fachliche Anforderungen, Bewertung der Vorschläge und finale Abnahme lagen beim Entwickler. KI-generierte Änderungen wurden geprüft und über Builds validiert.
+- **Eigene Leistung:** Architekturentscheidungen, fachliche Anforderungen, Bewertung der Vorschläge und finale Abnahme. KI-generierte Änderungen wurden geprüft und über Builds validiert.
 
 ### 6.2 Prompt-Vorgehen
 
@@ -620,7 +682,7 @@ Die Prompts wurden auf konkrete Arbeitsschritte ausgerichtet, z. B. "Foto-Upload
 
 ### 6.3 Reflexion
 
-KI war hilfreich, um wiederkehrende Implementierungsarbeiten schneller umzusetzen, Bugs systematisch zu analysieren und Dokumentation zu strukturieren. Grenzen bestehen bei projektspezifischem Kontext, UI-Feinheiten und fachlichen Entscheidungen: Diese müssen weiterhin durch den Entwickler überprüft werden. Risiken wie veraltete Annahmen, unerwünschte Nebeneffekte oder unpassende Abstraktionen wurden durch Code-Review, gezielte Diffs und Build-Prüfungen reduziert.
+KI war hilfreich, um Implementierungsarbeiten schneller umzusetzen, Bugs systematisch zu analysieren und Dokumentation zu strukturieren bzw. zu formattieren. Grenzen bestehen bei projektspezifischem Kontext, UI-Feinheiten und fachlichen Entscheidungen: Diese müssen weiterhin manuell überprüft werden. Risiken wie veraltete Annahmen, unerwünschte Nebeneffekte oder unpassende Abstraktionen wurden durch Code-Review, gezielte Diffs und Build-Prüfungen reduziert.
 
 ## 7. Anhang
 
