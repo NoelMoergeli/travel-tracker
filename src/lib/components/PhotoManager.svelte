@@ -150,9 +150,6 @@
 						<input type="hidden" name="photoData" value={photo.data} />
 						<input type="hidden" name="photoCaptions" value={photo.caption} />
 						<input type="hidden" name="photoUploadedAts" value={photo.uploadedAt} />
-						{#if photo.legacyUrl}
-							<input type="hidden" name="photoLegacyUrls" value={photo.legacyUrl} />
-						{/if}
 
 						<img src={photoSource(photo)} alt={photo.caption} onerror={() => (photo.isBroken = true)} />
 						{#if photo.isBroken}

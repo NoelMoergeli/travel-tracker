@@ -33,9 +33,6 @@ export const actions: Actions = {
 				message: updateError instanceof Error ? updateError.message : 'Unable to update trip.',
 				errors: validationErrors,
 				values: tripValuesFromForm(formData),
-				images: formData
-					.getAll('existingImages')
-					.filter((value): value is string => typeof value === 'string'),
 				photos: photoValuesFromForm(formData)
 			});
 		}

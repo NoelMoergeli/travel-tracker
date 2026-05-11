@@ -495,7 +495,6 @@ Fasst die technische Realisierung zusammen.
   - `/trip/new`: `src/routes/trip/new/+page.svelte` und `+page.server.ts`; lädt optional ein vorausgewähltes Land aus `?country=XX`, erstellt neue Trips und leitet danach zum Dashboard weiter.
   - `/trip/[id]/edit`: `src/routes/trip/[id]/edit/+page.svelte` und `+page.server.ts`; lädt nur Trips des eingeloggten Benutzers, aktualisiert bestehende Trips und liefert 404 bei fremden oder nicht existierenden IDs.
   - `/logout`: `src/routes/logout/+server.ts`; löscht die Session serverseitig und entfernt das Cookie.
-  - `/api/uploads/raw`: `src/routes/api/uploads/raw/+server.ts`; geschützter Legacy-Endpunkt zum Ausliefern alter GridFS-Bilder, sofern die Bild-URL zu einem Trip des eingeloggten Benutzers gehört.
   - `WorldMap.svelte`: lädt `countries-110m.json` von jsDelivr, rendert SVG-Länder, markiert besuchte und selektierte Länder und bietet Maus-/Tastaturinteraktion.
   - `CountrySearch.svelte`: Suche im Dashboard mit Trefferliste und Auswahl-Callback.
   - `CountryPicker.svelte`: Länderauswahl in Formularen mit Hidden Field für den ISO-Code und sichtbarem Suchfeld.
@@ -505,14 +504,13 @@ Fasst die technische Realisierung zusammen.
   - `PhotoGrid.svelte`: Galerie-Grid im Dashboard-Modal.
   - `PhotoLightbox.svelte`: fullscreen Slideshow mit Tastatursteuerung.
   - `src/lib/server/trips.ts`: Trip-Validierung, FormData-Mapping, Foto-Normalisierung, CRUD-Funktionen, Public DTO Mapping.
-  - `src/lib/server/uploads.ts`: Legacy-GridFS-Upload für das alte `images`-Feld.
   - `src/lib/db/mongo.ts`: MongoDB-Verbindung mit globalem Cache für Development.
   - `src/lib/auth/session.ts`: Session erstellen, laden und löschen.
   - `src/lib/photos.ts`: Foto-Konstanten, Dateivalidierung und Erzeugung der Bildquelle.
   - `src/lib/countries/index.ts`: Länderoptionen, Ländernamen und Mapping von Kartennamen auf ISO-Codes.
 
 - **Daten & Schnittstellen:**
-  - **Collections:** `users` speichert Benutzerkonto und Passwort-Hash, `sessions` speichert serverseitige Sessions, `trips` speichert Reisen, `uploads.files`/`uploads.chunks` speichern alte GridFS-Bilder.
+  - **Collections:** `users` speichert Benutzerkonto und Passwort-Hash, `sessions` speichert serverseitige Sessions, `trips` speichert Reisen inklusive optionaler Fotos.
   - **Trip-Dokument:**
 
 ```ts
@@ -524,8 +522,7 @@ interface Trip {
   dateFrom: string;
   dateTo?: string;
   notes?: string;
-  images?: string[];
-  photos?: StoredTripPhoto[];
+  photos?: TripPhoto[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -545,20 +542,8 @@ interface TripPhoto {
 }
 ```
 
-  - **Legacy-Foto-Modell:**
-
-```ts
-interface LegacyTripPhoto {
-  id: string;
-  url: string;
-  caption?: string;
-  uploadedAt: Date;
-}
-```
-
-  - Das aktive UI nutzt `photos` mit Base64-Daten. Gerendert wird über `data:{mimeType};base64,{data}`.
-  - Alte Daten bleiben kompatibel: `images?: string[]` kann weiterhin existieren; `LegacyTripPhoto` mit `legacyUrl` wird beim Public Mapping unterstützt. Die neue UI speichert neue Galerie-Fotos jedoch im `photos`-Array.
-  - Alle Trip-Abfragen filtern nach `userId`. Dadurch kann ein Benutzer nur eigene Reisen laden, bearbeiten, löschen und Legacy-Uploads abrufen.
+  - Fotos werden ausschliesslich als `TripPhoto` im `photos`-Array gespeichert. Gerendert wird über `data:{mimeType};base64,{data}`.
+  - Alle Trip-Abfragen filtern nach `userId`. Dadurch kann ein Benutzer nur eigene Reisen laden, bearbeiten und löschen.
   - Formular-Submit erfolgt über SvelteKit Form Actions. Fehler werden mit `fail(...)` an die Seite zurückgegeben, inklusive Feldfehlern, Formwerten und Foto-Zwischenstand.
   - Die Weltkarte lädt ihre TopoJSON-Daten clientseitig von `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json`.
 
@@ -567,7 +552,6 @@ interface LegacyTripPhoto {
   - Login: Benutzername und Passwort sind Pflichtfelder; Passwort wird mit `argon2.verify` geprüft.
   - Trip: Land ist ein ISO-Alpha-2-Code, Ort/Stadt ist Pflicht, Startdatum ist Pflicht, Enddatum darf nicht vor dem Startdatum liegen.
   - Fotos: erlaubt sind `image/jpeg`, `image/png` und `image/webp`; maximal 2 MB pro Foto; maximal 10 Fotos pro Reise; Caption maximal 160 Zeichen.
-  - Legacy-GridFS-Uploads: maximal 5 Dateien pro Submit, standardmässig maximal 5 MB pro Datei und nur MIME-Typen mit Prefix `image/`.
 
 - **Deployment:**
   - Die Anwendung ist mit `@sveltejs/adapter-auto` für ein kompatibles SvelteKit-Deployment vorbereitet.
@@ -578,7 +562,7 @@ interface LegacyTripPhoto {
 - **Besondere Entscheidungen:**
   - Sessions werden serverseitig in MongoDB gespeichert und per HTTP-only Cookie referenziert. Das ist für den Prototyp einfacher als OAuth und trotzdem klar vom Frontend getrennt.
   - Fotos werden im aktiven Flow direkt im Trip-Dokument gespeichert. Das reduziert Infrastruktur und vermeidet externes File-Hosting, ist aber wegen Dokumentgrösse und Base64-Overhead nur für kleine Prototyp-Fotos geeignet.
-  - Die ältere GridFS-Upload-Logik bleibt im Code, damit vorhandene `images`-Daten und alte Upload-URLs nicht sofort ungültig werden.
+  - Das alte Legacy-Foto-Pattern mit `LegacyTripPhoto`, `legacyUrl`, `images` und GridFS-Uploads wurde entfernt; der Prototyp verwendet nur noch `TripPhoto`.
   - Die Karte verwendet externe TopoJSON-Daten. Dadurch ist das Repository kleiner, aber die Karte hängt im Browser von Netzwerkzugriff auf jsDelivr ab.
   - Das UI ist bewusst ohne globalen Client Store umgesetzt. Der wichtigste Zustand, z. B. selektiertes Land, Suchquery, Galerie, Lightbox und Löschkandidat, bleibt lokal in der Dashboard-Seite.
   - Nach Create/Update wird per Redirect ins Dashboard gewechselt. Dadurch bleiben Datenstand und URL klar, statt Formularzustand und Dashboard parallel synchronisieren zu müssen.
@@ -696,7 +680,7 @@ KI war hilfreich, um Implementierungsarbeiten schneller umzusetzen, Bugs systema
 - **Bekannte technische Hinweise:**
   - Die Weltkarte lädt TopoJSON-Daten zur Laufzeit von jsDelivr.
   - Fotos werden als Base64 direkt im Trip-Dokument gespeichert; dadurch sollte die Dateigrösse bewusst begrenzt bleiben.
-  - Der Prototyp enthält noch Kompatibilität für ältere Bildfelder (`images` und Legacy-URL-Fotos), die aktive UI nutzt jedoch die neue Fotoverwaltung.
+  - Der Prototyp verwendet nur noch das aktuelle `TripPhoto`-Modell; Legacy-Bildfelder und GridFS-Uploads sind ausgebaut.
 - **Nützliche Befehle:**
 
 ```bash

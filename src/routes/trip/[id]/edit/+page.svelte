@@ -22,7 +22,6 @@
 		notes: form?.values?.notes ?? data.trip.notes
 	});
 
-	const images = $derived(form?.images ?? data.trip.images);
 	const photos = $derived(form?.photos ?? data.trip.photos);
 	const errors = $derived.by(() => {
 		const merged: TripFieldErrors = { ...(form?.errors ?? {}), ...clientErrors };
@@ -143,10 +142,6 @@
 				Notes
 				<textarea class="input textarea" name="notes" onblur={() => validateField('notes')}>{values.notes}</textarea>
 			</label>
-
-			{#each images as image}
-				<input type="hidden" name="existingImages" value={image} />
-			{/each}
 
 			<PhotoManager {photos} error={errors.photos} />
 

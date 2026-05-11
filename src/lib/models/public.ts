@@ -6,7 +6,6 @@ export interface PublicTripPhoto {
 	data: string;
 	caption: string;
 	uploadedAt: string;
-	legacyUrl?: string;
 }
 
 export interface PublicTrip {
@@ -17,6 +16,5 @@ export interface PublicTrip {
 	dateFrom: string;
 	dateTo: string;
 	notes: string;
-	images: string[];
 	photos: PublicTripPhoto[];
 }

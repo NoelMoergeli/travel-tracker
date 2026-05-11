@@ -4,10 +4,9 @@ import { z } from 'zod';
 import { getCountryName } from '$lib/countries';
 import { getDb } from '$lib/db/mongo';
 import type { PublicTrip, PublicTripPhoto } from '$lib/models/public';
-import { TRIPS_COLLECTION, type LegacyTripPhoto, type StoredTripPhoto, type Trip, type TripPhoto } from '$lib/models/trip';
+import { TRIPS_COLLECTION, type Trip, type TripPhoto } from '$lib/models/trip';
 import { PHOTO_ALLOWED_MIME_TYPES, PHOTO_CAPTION_MAX_LENGTH, PHOTO_MAX_BYTES, PHOTO_MAX_PER_TRIP } from '$lib/photos';
 import type { TripFieldErrors, TripFormValues } from '$lib/trip-validation';
-import { uploadImages } from './uploads';
 
 export const TripFormSchema = z
 	.object({
@@ -49,12 +48,9 @@ export const TripPhotoFormSchema = z
 		size: z.coerce.number().optional(),
 		data: z.string().trim().optional(),
 		caption: z.string().trim().max(PHOTO_CAPTION_MAX_LENGTH, 'Photo captions must be 160 characters or fewer.').optional(),
-		uploadedAt: z.string().trim().optional(),
-		legacyUrl: z.string().trim().optional()
+		uploadedAt: z.string().trim().optional()
 	})
 	.superRefine((photo, context) => {
-		if (photo.legacyUrl && !photo.data) return;
-
 		if (!photo.filename) {
 			context.addIssue({ code: z.ZodIssueCode.custom, message: 'Photo filename is required.', path: ['filename'] });
 		}
@@ -74,25 +70,16 @@ export const TripPhotoFormSchema = z
 
 function normalizeTripPhotos(photos: Trip['photos']): PublicTripPhoto[] {
 	return (photos ?? [])
-		.filter((photo) => photo.id && (isTripPhoto(photo) || isLegacyTripPhoto(photo)))
+		.filter((photo) => photo.id)
 		.map((photo) => ({
 			id: photo.id,
-			filename: isTripPhoto(photo) ? photo.filename : 'External image',
-			mimeType: isTripPhoto(photo) ? photo.mimeType : '',
-			size: isTripPhoto(photo) ? photo.size : 0,
-			data: isTripPhoto(photo) ? photo.data : '',
+			filename: photo.filename,
+			mimeType: photo.mimeType,
+			size: photo.size,
+			data: photo.data,
 			caption: photo.caption ?? '',
-			uploadedAt: dateToIsoString(photo.uploadedAt),
-			...(isLegacyTripPhoto(photo) ? { legacyUrl: photo.url } : {})
+			uploadedAt: dateToIsoString(photo.uploadedAt)
 		}));
-}
-
-function isTripPhoto(photo: StoredTripPhoto): photo is TripPhoto {
-	return 'data' in photo && 'mimeType' in photo && 'filename' in photo;
-}
-
-function isLegacyTripPhoto(photo: StoredTripPhoto): photo is LegacyTripPhoto {
-	return 'url' in photo;
 }
 
 function dateToIsoString(value: Date): string {
@@ -123,7 +110,6 @@ export function tripToPublic(trip: Trip): PublicTrip {
 		dateFrom: trip.dateFrom,
 		dateTo: trip.dateTo ?? '',
 		notes: trip.notes ?? '',
-		images: trip.images ?? [],
 		photos: normalizeTripPhotos(trip.photos)
 	};
 }
@@ -138,18 +124,6 @@ export function tripValuesFromForm(formData: FormData): TripFormValues {
 	};
 }
 
-export function imagesFromForm(formData: FormData): File[] {
-	return formData
-		.getAll('images')
-		.filter((value): value is File => value instanceof File && value.size > 0);
-}
-
-export function existingImagesFromForm(formData: FormData): string[] {
-	return formData
-		.getAll('existingImages')
-		.filter((value): value is string => typeof value === 'string' && value.length > 0);
-}
-
 export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
 	const ids = formData.getAll('photoIds');
 	const filenames = formData.getAll('photoFilenames');
@@ -158,15 +132,11 @@ export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
 	const data = formData.getAll('photoData');
 	const captions = formData.getAll('photoCaptions');
 	const uploadedAts = formData.getAll('photoUploadedAts');
-	const legacyUrls = formData.getAll('photoLegacyUrls').length
-		? formData.getAll('photoLegacyUrls')
-		: formData.getAll('photoUrls');
 
 	const rowCount = Math.max(
 		filenames.length,
 		data.length,
-		captions.length,
-		legacyUrls.length
+		captions.length
 	);
 
 	return Array.from({ length: rowCount })
@@ -177,13 +147,12 @@ export function photoValuesFromForm(formData: FormData): PublicTripPhoto[] {
 			size: Number(sizes[index] ?? 0),
 			data: String(data[index] ?? ''),
 			caption: String(captions[index] ?? ''),
-			uploadedAt: String(uploadedAts[index] ?? ''),
-			legacyUrl: String(legacyUrls[index] ?? '') || undefined
+			uploadedAt: String(uploadedAts[index] ?? '')
 		}))
-		.filter((photo) => photo.id || photo.data || photo.legacyUrl || photo.caption || photo.uploadedAt);
+		.filter((photo) => photo.id || photo.data || photo.caption || photo.uploadedAt);
 }
 
-export function photosFromForm(formData: FormData): StoredTripPhoto[] {
+export function photosFromForm(formData: FormData): TripPhoto[] {
 	const photoValues = photoValuesFromForm(formData);
 
 	if (photoValues.length > PHOTO_MAX_PER_TRIP) {
@@ -202,15 +171,6 @@ export function photosFromForm(formData: FormData): StoredTripPhoto[] {
 
 		const uploadedAt = result.data.uploadedAt ? new Date(result.data.uploadedAt) : new Date();
 		const normalizedUploadedAt = Number.isNaN(uploadedAt.getTime()) ? new Date() : uploadedAt;
-
-		if (result.data.legacyUrl && !result.data.data) {
-			return {
-				id: result.data.id || randomUUID(),
-				url: result.data.legacyUrl,
-				caption: result.data.caption || undefined,
-				uploadedAt: normalizedUploadedAt
-			};
-		}
 
 		return {
 			id: result.data.id || randomUUID(),
@@ -246,7 +206,6 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 	}
 
 	const db = await getDb();
-	const images = await uploadImages(db, imagesFromForm(formData));
 	const photos = photosFromForm(formData);
 	const now = new Date();
 
@@ -257,7 +216,6 @@ export async function createTrip(userId: string, formData: FormData): Promise<vo
 		dateFrom: result.data.dateFrom,
 		dateTo: result.data.dateTo || undefined,
 		notes: result.data.notes || undefined,
-		images,
 		...(photos.length ? { photos } : {}),
 		createdAt: now,
 		updatedAt: now
@@ -276,8 +234,6 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 	}
 
 	const db = await getDb();
-	const newImages = await uploadImages(db, imagesFromForm(formData));
-	const images = [...existingImagesFromForm(formData), ...newImages];
 	const photos = photosFromForm(formData);
 	const tripUpdates = {
 		countryCode: result.data.countryCode.toUpperCase(),
@@ -285,7 +241,6 @@ export async function updateTrip(userId: string, tripId: string, formData: FormD
 		dateFrom: result.data.dateFrom,
 		dateTo: result.data.dateTo || undefined,
 		notes: result.data.notes || undefined,
-		images,
 		...(photos.length ? { photos } : {}),
 		updatedAt: new Date()
 	};

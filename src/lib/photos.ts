@@ -23,9 +23,5 @@ export function formatBytes(bytes: number): string {
 }
 
 export function photoSource(photo: PublicTripPhoto): string {
-	if (photo.mimeType && photo.data) {
-		return `data:${photo.mimeType};base64,${photo.data}`;
-	}
-
-	return photo.legacyUrl ?? '';
+	return `data:${photo.mimeType};base64,${photo.data}`;
 }

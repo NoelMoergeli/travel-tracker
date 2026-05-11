@@ -10,15 +10,6 @@ export interface TripPhoto {
 	uploadedAt: Date;
 }
 
-export interface LegacyTripPhoto {
-	id: string;
-	url: string;
-	caption?: string;
-	uploadedAt: Date;
-}
-
-export type StoredTripPhoto = TripPhoto | LegacyTripPhoto;
-
 export interface Trip {
 	_id?: ObjectId;
 	userId: ObjectId;
@@ -27,8 +18,7 @@ export interface Trip {
 	dateFrom: string;
 	dateTo?: string;
 	notes?: string;
-	images?: string[];
-	photos?: StoredTripPhoto[];
+	photos?: TripPhoto[];
 	createdAt?: Date;
 	updatedAt?: Date;
 }
