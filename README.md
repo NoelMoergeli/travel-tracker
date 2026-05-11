@@ -26,21 +26,33 @@ Viele Personen möchten ihre Reisen festhalten, später wiederfinden und visuell
   - Besuchte Länder werden auf einer interaktiven Weltkarte markiert.
   - Länder können über die Karte oder über eine Suche ausgewählt werden.
   - Pro Reise können Fotos direkt in MongoDB gespeichert und in einer Galerie angezeigt werden.
-  - Bestehende Reisen ohne Fotos funktionieren weiterhin.
 - **Primäre Zielgruppe:** Privatpersonen, die ihre Reisen strukturiert und visuell dokumentieren möchten.
-- **Weitere Stakeholder:** Lehrpersonen oder Reviewer, welche den Prototyp, die technische Umsetzung und die Dokumentation beurteilen.
+- **Weitere Stakeholder:** Manager, die Auslandsreisen ihrer Mitarbeiter tracken möchten, oder Reiseblogger, die ihre Erlebnisse teilen wollen (Sharing aktuell nicht geplant, könnte aber eine Erweiterung sein).
 
 ## 2. Lösungsidee
 
-Die Anwendung ist eine SvelteKit-Webapplikation mit MongoDB als Datenbank. Nach dem Login gelangt der Benutzer auf ein Dashboard mit zwei Hauptbereichen: links die aufgezeichneten Reisen, rechts die Länder-Suche und die Weltkarte.
+Die Anwendung ist eine SvelteKit-Webapplikation mit MongoDB als Datenbank. Nach dem Login gelangt der Benutzer auf ein Dashboard mit Länder-Suche und Weltkarte.
 
-- **Kernfunktionalität:**
+- **Kernfunktionalität Beschreibung:**
   - Registrierung, Login und Logout mit Session-Cookie.
-  - Dashboard mit Weltkarte, besuchten Ländern und scrollbarer Reiseliste.
+  - Dashboard mit Weltkarte, den besuchten Ländern und scrollbarer Reiseliste.
   - Länder-Suche oberhalb der Karte.
   - Neue Reise erfassen mit Land, Ort, Datum, Notizen und optionalen Fotos.
   - Reise bearbeiten oder löschen.
   - Fotogalerie mit Grid-Ansicht und fullscreen Slideshow/Lightbox.
+- **Kernfunktionalität Workflows:**
+  - Workflow 1: Login/Registrierung
+  
+    ![img.png](doc/imgages/workflow1.png)
+  - Workflow 2: Reise hinzufügen
+  
+    ![img.png](doc/imgages/workflow2.png)
+  - Workflow 3: Reise bearbeiten
+  
+    ![img.png](doc/imgages/workflow3.png)
+  - Workflow 4: Reise löschen
+  
+    ![img.png](doc/imgages/workflow4.png)
 - **Annahmen:**
   - Eine Reise gehört immer genau einem eingeloggten Benutzer.
   - Pro Reise sind maximal 10 Galerie-Fotos vorgesehen.
@@ -56,25 +68,183 @@ Die Umsetzung erfolgte iterativ: zuerst Authentifizierung und Basis-Dashboard, d
 
 ### 3.1 Understand & Define
 
-- **Zielgruppenverständnis:** Die Zielgruppe möchte Reisen schnell erfassen und später übersichtlich wiederfinden. Wichtig sind eine einfache Eingabe, visuelle Orientierung über Länder und ein klarer Bezug zwischen Reise und Erinnerungsfotos.
-- **Wesentliche Erkenntnisse:**
-  - Die Weltkarte ist der zentrale visuelle Einstieg.
-  - Die Reiseliste darf die Karte nicht in der Höhe vergrössern; viele Reisen müssen in einem scrollbaren Bereich erscheinen.
-  - Die Länderauswahl muss sowohl über Karte als auch über Suche funktionieren.
-  - Fotos sollen ohne externe URL hochgeladen werden können.
+#### Zielgruppenverständnis
+
+##### Problemraumanalyse
+
+Viele Menschen reisen regelmässig und möchten ihre besuchten Länder, Städte und Erlebnisse festhalten. Oft werden Erinnerungen jedoch nur über Fotos, Social Media oder einzelne Notizen gespeichert. Dadurch entstehen mehrere Probleme:
+
+- Reiseinformationen sind auf verschiedene Plattformen verteilt
+- Bereits besuchte Länder geraten mit der Zeit in Vergessenheit
+- Es fehlt eine klare Übersicht über vergangene Reisen
+- Wunschdestinationen werden häufig ungeordnet gespeichert
+- Bestehende Lösungen fokussieren oft auf Social Media oder Buchungen statt auf persönliche Reiseverwaltung
+
+Zusätzlich besteht bei vielen Nutzern der Wunsch, Reiseziele visuell darzustellen und persönliche Fortschritte sichtbar zu machen.
+
+---
+
+##### Recherche
+
+Zur Analyse bestehender Lösungen wurden verschiedene Reiseplattformen betrachtet:
+
+**Polarsteps**  
+Fokus auf laufendes Reise-Tracking und Teilen mit Freunden.
+
+**Google Maps Listen**  
+Möglichkeit Orte zu speichern, jedoch wenig persönliche Statistik oder Verwaltung.
+
+**Tripadvisor**  
+Schwerpunkt auf Bewertungen und Empfehlungen.
+
+**Instagram / Fotoalben**  
+Gut für Erinnerungen, aber keine strukturierte Organisation von Reisen.
+
+Die Recherche zeigte, dass viele bestehende Plattformen entweder sehr komplex oder stark auf Social Features ausgerichtet sind. Eine einfache Plattform zur persönlichen Verwaltung und Visualisierung bereits besuchter Länder bietet deshalb Potenzial.
+
+---
+
+##### Proto-Personas
+
+**Persona 1 – Lukas Schneider**
+
+**Persönliche Attribute**
+- 24 Jahre alt
+- Student
+- reist gerne mit Freunden
+- plant mehrere Städtereisen pro Jahr
+
+**Umfeld („Kontext“)**
+- Nutzt viele digitale Apps
+- Speichert Reiseideen oft ungeordnet
+- Verwendet Fotos und Social Media als Erinnerung
+
+**Ziele**
+- Überblick über besuchte Länder behalten
+- Neue Reiseziele planen
+- Reisen visuell auf einer Karte sehen
+
+**Aufgaben**
+- Reisen hinzufügen
+- Länder suchen
+- Reiseinformationen bearbeiten
+
+**Frustpunkte**
+- Informationen sind auf viele Plattformen verteilt
+- Vergisst bereits besuchte Orte
+- Keine zentrale Übersicht
+
+---
+
+**Persona 2 – Sandra Meier**
+
+**Persönliche Attribute**
+- 38 Jahre alt
+- berufstätig
+- reist mehrmals jährlich mit der Familie
+
+**Umfeld („Kontext“)**
+- Wenig Zeit für Organisation
+- Viele Fotos und Erinnerungen vorhanden
+- Nutzt Apps hauptsächlich für praktische Funktionen
+
+**Ziele**
+- Familienreisen dokumentieren
+- Reisen einfach verwalten
+- Erinnerungen langfristig speichern
+
+**Aufgaben**
+- Reisedaten erfassen
+- Reisen bearbeiten oder löschen
+- Reisehistorie durchsuchen
+
+**Frustpunkte**
+- Fotos alleine geben keine Übersicht
+- Frühere Reisen sind schwer auffindbar
+- Reiseinformationen gehen verloren
+
+---
+
+#### Wesentliche Erkenntnisse
+
+- Nutzer wünschen sich eine zentrale Plattform für Reiseverwaltung
+- Eine visuelle Darstellung über eine Weltkarte erhöht die Übersichtlichkeit
+- Einfache CRUD-Funktionen (hinzufügen, bearbeiten, löschen) sind zentral
+- Nutzer bevorzugen klare und einfache Benutzeroberflächen
+- Reiseinformationen sollen schnell auffindbar sein
+- Bestehende Plattformen sind oft zu komplex oder zu stark auf Social Media fokussiert
+- Die Kombination aus Karte, Suche und Reiseübersicht bietet einen hohen Mehrwert
+- Besonders wichtig sind Übersicht, Einfachheit und schnelle Bedienung
 
 ### 3.2 Sketch
 
-- **Variantenüberblick:**
-  - Variante 1: reine Tabellenansicht mit Reisen.
-  - Variante 2: Dashboard mit Karte und Reiseliste.
-  - Variante 3: Dashboard mit Karte, separater Länder-Suche und Fotogalerien.
-- **Gewählte Richtung:** Variante 3, weil sie die wichtigsten Workflows verbindet: Land auswählen, Reisen sehen, neue Reise erfassen und Fotos betrachten.
+#### Variantenüberblick
+
+In der Sketch-Phase wurden mithilfe der Methode **Crazy 8s** verschiedene mögliche Benutzeroberflächen für die TravelTracker-App entwickelt. Ziel war es, in kurzer Zeit unterschiedliche Ansätze zur Darstellung und Verwaltung von Reisedestinationen zu skizzieren.
+
+Dabei entstanden verschiedene Ideen für:
+
+- Listenansichten
+- Kategorisierte Länderansichten
+- Kartenbasierte Darstellungen
+- Such- und Filterfunktionen
+- Grid-Layouts
+- Kombinationen aus Karte und Reiseinformationen
+
+Die unterschiedlichen Varianten halfen dabei, verschiedene Möglichkeiten zur Navigation, Informationsdarstellung und Benutzerführung zu vergleichen.
+
+---
+
+#### Crazy 8s
+
+![img.png](doc/imgages/crazy8.png)
+
+Im Crazy-8s-Prozess wurden acht unterschiedliche Layout-Ideen erstellt. Die Varianten unterschieden sich hauptsächlich in der Darstellung der Reiseinformationen und der Strukturierung der Inhalte.
+
+Wichtige Unterschiede zwischen den Varianten:
+
+- Einige Varianten fokussierten sich auf einfache Listenansichten
+- Andere konzentrierten sich auf geografische Gruppierungen nach Kontinenten
+- Mehrere Skizzen verwendeten eine visuelle Weltkarte als zentrales Element
+- Teilweise wurden Länder als Karten/Grid dargestellt
+- Einige Varianten integrierten Such- und Filterfunktionen
+- Andere fokussierten stärker auf Reisedaten und Zeiträume
+
+Während der Ideensammlung zeigte sich schnell, dass besonders die Kombination aus Weltkarte, Suchfunktion und Reiseübersicht einen hohen Mehrwert bietet.
+
+---
+
 
 ### 3.3 Decide
 
-- **Gewählte Variante & Begründung:** Das Dashboard verwendet links eine scrollbare Reiseliste und rechts eine Länder-Suche über der Weltkarte. Dadurch bleibt die Karte stabil und die Suche sichtbar, während viele Trips trotzdem zugänglich bleiben.
-- **End-to-End-Ablauf:**
+#### Gewählte Variante & Begründung
+
+![img.png](doc/imgages/sketch.png)
+
+Basierend auf den Erkenntnissen aus den Crazy 8s und dem Feedback von Tyler Storz wurde anschliessend eine detailliertere Hauptskizze erstellt.
+
+Die finale Skizze kombiniert:
+
+- Eine grosse Weltkarte als visuelles Hauptelement
+- Eine Suchfunktion für Länder
+- Bereiche für bereits besuchte und noch nicht besuchte Länder
+- Eine klare Navigation mit mehreren Pages
+- Direkte Aktionen wie „add“ oder „view“
+
+Die Navigation wurde bewusst einfach gehalten, damit Nutzer schnell zwischen den wichtigsten Bereichen wechseln können.
+
+Zusätzlich wurde darauf geachtet, dass:
+
+- Die wichtigsten Funktionen direkt sichtbar sind
+- Die Karte genügend Platz erhält
+- Reiseinformationen übersichtlich dargestellt werden
+- Die Benutzeroberfläche klar und intuitiv wirkt
+
+Die ausgearbeitete Skizze diente später als Grundlage für die digitalen Mockups in Figma.
+
+---
+
+#### End-to-End-Ablauf:
   1. Benutzer registriert sich oder meldet sich an.
   2. Dashboard lädt alle eigenen Reisen aus MongoDB.
   3. Besuchte Länder werden auf der Weltkarte eingefärbt.
@@ -82,7 +252,153 @@ Die Umsetzung erfolgte iterativ: zuerst Authentifizierung und Basis-Dashboard, d
   5. Die Reiseliste wird nach diesem Land gefiltert.
   6. Benutzer erfasst, bearbeitet oder löscht Reisen.
   7. Fotos werden im Edit-/New-Formular hinzugefügt und später in Galerie/Slideshow angezeigt.
-- **Mockup:** Kein externes Figma-Mockup im Repository. Die UI wurde direkt im SvelteKit-Prototyp iteriert.
+
+##### User Journey Map
+
+| Schritt | Aktion des Benutzers                              | Systemreaktion                                                   |
+|---------|---------------------------------------------------|------------------------------------------------------------------|
+| 1       | Benutzer registriert sich oder meldet sich an     | Benutzerkonto wird erstellt bzw. Benutzer wird authentifiziert   |
+| 2       | Benutzer öffnet das Dashboard                     | Alle gespeicherten Reisen werden aus MongoDB geladen             |
+| 3       | Benutzer sieht die Weltkarte                      | Bereits besuchte Länder werden farblich markiert                 |
+| 4       | Benutzer sucht ein Land oder klickt auf die Karte | Die Reiseliste wird entsprechend gefiltert                       |
+| 5       | Benutzer öffnet eine bestehende Reise             | Reisedetails und Fotos werden angezeigt                          |
+| 6       | Benutzer erstellt eine neue Reise                 | Formular für Land, Stadt, Datum, Notizen und Fotos wird geöffnet |
+| 7       | Benutzer speichert die Reise                      | Daten werden in MongoDB gespeichert und die Karte aktualisiert   |
+| 8       | Benutzer bearbeitet oder löscht eine Reise        | Änderungen werden direkt übernommen                              |
+| 9       | Benutzer betrachtet Fotos in der Galerie          | Bilder werden als Galerie oder Slideshow angezeigt               |
+---
+
+### 3.3 Mockup
+
+#### Figma-Prototyp
+
+Der klickbare Prototyp wurde mit Figma erstellt und diente als Grundlage für die spätere Implementierung des Projekts.
+
+**Figma URL:**  
+https://www.figma.com/proto/j2t9e8nlolphKobL1eoeFj/Travel-Tracker?node-id=0-1&t=tnjlZKxY6jMUvOeC-1
+
+---
+
+#### Designentscheide
+
+##### Plattformwahl: Desktop First
+
+Ich habe mich bewusst für eine Desktop-Version entschieden, da die Anwendung mehrere Informationen gleichzeitig anzeigen soll, beispielsweise:
+
+- Suchbereich
+- Resultatliste
+- Weltkarte
+- Navigation
+
+Dadurch kann der verfügbare Platz optimal genutzt werden. Eine mobile Version wäre später als Erweiterung möglich.
+
+---
+
+##### Navigation
+
+Die Navigation befindet sich oben rechts und wurde bewusst einfach gehalten.
+
+Sie besteht aus folgenden Bereichen:
+
+- Dashboard
+- Add Trip
+- My Profile
+
+Dadurch können Nutzer schnell zwischen den wichtigsten Funktionen wechseln.
+
+---
+
+##### Layout
+
+Das Dashboard ist in zwei Hauptbereiche unterteilt.
+
+**Linke Seite**
+- Suchfunktion für Länder
+- Resultatliste
+- Trip-Karten mit Reiseinformationen
+- Button „Add Trip“
+
+**Rechte Seite**
+- Interaktive Weltkarte
+
+Diese Aufteilung ermöglicht eine klare Trennung zwischen Datenverwaltung und visueller Übersicht.
+
+---
+
+##### Farbwahl / Stil
+
+Das Design wurde bewusst schlicht, modern und neutral gehalten, damit die Funktionalität im Vordergrund steht.
+
+Verwendet wurden:
+- Helle Hintergründe
+- Dunkle Buttons für wichtige Aktionen
+- Rote Buttons für Löschen- oder Warnaktionen
+- Einfache und klare Formularelemente
+
+---
+
+##### Benutzerfreundlichkeit
+
+Wichtige Aktionen wie Hinzufügen, Bearbeiten und Löschen sind direkt sichtbar und einfach erreichbar.
+
+Die Formulare wurden bewusst einfach aufgebaut und enthalten:
+- Land
+- Stadt
+- Datum von / bis
+- Notizen
+- Fotos
+
+Dadurch soll eine möglichst intuitive Bedienung ermöglicht werden.
+
+---
+
+##### Anmerkungen
+
+Obwohl ich bewusst ein schlichtes Design gewählt habe, hatte ich während der Arbeit mit Figma teilweise Mühe, das gewünschte visuelle Design genau umzusetzen. Der Fokus lag deshalb primär auf Struktur, Benutzerführung und Funktionalität des Mockups.
+
+Für die finale Umsetzung der App wurden weitere visuelle Verbesserungen umgesetzt, damit die Anwendung moderner und lebendiger wirkt.
+
+---
+
+#### Screenshots des Mockups
+
+##### Login Screen
+
+![img.png](doc/imgages/figma_login.png)
+
+Der Login-Screen ermöglicht Benutzern die Anmeldung zur Anwendung. Das Layout wurde bewusst minimalistisch gehalten.
+
+---
+
+##### Dashboard / Weltkarte
+
+![img.png](doc/imgages/figma_dashboard.png)
+
+Das Dashboard kombiniert die Reiseverwaltung mit einer visuellen Weltkarte. Bereits besuchte Länder werden hervorgehoben.
+
+---
+
+##### Add Trip Formular
+
+![img.png](doc/imgages/figma_add_trip.png)
+
+Über das Formular können neue Reisen mit Land, Stadt, Datum, Notizen und Fotos hinzugefügt werden.
+
+---
+
+##### Edit Trip Formular
+
+![img.png](doc/imgages/figma_edit_trip.png)
+
+Bestehende Reisen können bearbeitet und aktualisiert werden.
+
+---
+
+##### Delete Confirmation Dialog
+
+![img.png](doc/imgages/figma_delete_trip.png)
+
+Vor dem Löschen einer Reise erscheint ein Bestätigungsdialog, um versehentliche Löschungen zu vermeiden.
 
 ### 3.4 Prototype
 
