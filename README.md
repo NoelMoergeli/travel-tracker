@@ -542,7 +542,7 @@ interface TripPhoto {
 }
 ```
 
-  - Fotos werden ausschliesslich als `TripPhoto` im `photos`-Array gespeichert. Gerendert wird über `data:{mimeType};base64,{data}`.
+  - Fotos werden als `TripPhoto` im `photos`-Array gespeichert. Gerendert wird über `data:{mimeType};base64,{data}`.
   - Alle Trip-Abfragen filtern nach `userId`. Dadurch kann ein Benutzer nur eigene Reisen laden, bearbeiten und löschen.
   - Formular-Submit erfolgt über SvelteKit Form Actions. Fehler werden mit `fail(...)` an die Seite zurückgegeben, inklusive Feldfehlern, Formwerten und Foto-Zwischenstand.
   - Die Weltkarte lädt ihre TopoJSON-Daten clientseitig von `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json`.
@@ -600,55 +600,27 @@ Dokumentiert Erweiterungen über den Mindestumfang hinaus.
 
 ## 5. Projektorganisation
 
-- **Repository & Struktur:**
+### Repository & Struktur:
   - `src/routes`: SvelteKit-Seiten und Server Actions.
   - `src/lib/components`: wiederverwendbare UI-Komponenten.
   - `src/lib/models`: TypeScript-Modelle für MongoDB/Public DTOs.
   - `src/lib/server`: serverseitige Geschäftslogik.
   - `src/lib/db`: MongoDB-Verbindung.
   - `src/lib/styles/global.css`: globales Styling.
-- **Lokale Installation:**
 
-```bash
-npm install
-```
+### Issue-Management:
+Aufgaben und offene Probleme wurden schrittweise während der Entwicklung dokumentiert und priorisiert. Grössere Funktionen wie Login, Kartenintegration oder CRUD-Operationen wurden in einzelne Arbeitsschritte unterteilt und nacheinander umgesetzt. Fehler und Verbesserungen wurden laufend getestet und angepasst. Dafür wurden keine spezifischen Issue-Tracking-Tools verwendet, sondern die Entwicklung erfolgte anhand eines manuell vordefinierten Plans in kleinen, beschreibenden Commits, die jeweils eine abgeschlossene Änderung oder Funktionalität darstellen.
 
-- **Umgebungsvariablen:**
+### Commit-Praxis:
+Die Entwicklung wurde in kleine, beschreibende Commits aufgeteilt. Die Commit-Messages folgen einem einfachen Prefix-Schema, damit direkt erkennbar ist, welche Art von Änderung vorgenommen wurde:
+  - `feat`: Neue Funktionalität oder ein neuer fachlicher Teil der Anwendung, z. B. Trip-Feldvalidierung, Foto-Upload oder Speicherung von Fotos direkt im Trip-Dokument.
+  - `fix`: Fehlerbehebungen oder Korrekturen an bestehendem Verhalten, z. B. korrekte Anzeige von Validierungsfehlern, stabile Dashboard-Höhen oder korrigierte Filterlogik.
+  - `refactor`: Interne Umstrukturierungen ohne beabsichtigte Funktionsänderung, z. B. Verschieben von UI-Logik in Komponenten, Entfernen alter Legacy-Pfade oder Vereinfachung der Datenmodelle.
+  - `style`: Visuelle oder strukturelle UI-Anpassungen ohne fachliche Logikänderung, z. B. klarere Abschnitte in der Fotoverwaltung oder Layout-/Darstellungsverbesserungen.
+  - `chore`: Wartungsarbeiten, Analyse-Commits oder Projektpflege ohne direkte Änderung an der Benutzerfunktionalität, z. B. Inspektion bestehender Implementierungen oder kleinere Setup-Arbeiten.
+  - `docs`: Änderungen an Dokumentation und README, z. B. Ergänzungen zu Prototyp, Workflows, Validierung oder technischer Umsetzung.
 
-```env
-MONGODB_URI=mongodb://127.0.0.1:27017
-MONGODB_DB=travel-tracker
-COOKIE_NAME=sessionId
-SESSION_DAYS=30
-```
-
-Alternativ akzeptiert die MongoDB-Verbindung auch `DB_URI`, `DB_URL` oder `DB_NAME`.
-
-- **Entwicklung starten:**
-
-```bash
-npm run dev
-```
-
-Unter Windows kann auch verwendet werden:
-
-```bash
-npm.cmd run dev
-```
-
-- **Build prüfen:**
-
-```bash
-npm run build
-```
-
-Unter Windows:
-
-```bash
-npm.cmd run build
-```
-
-- **Commit-Praxis:** Die Entwicklung wurde in kleine, beschreibende Commits aufgeteilt, z. B. Feature-, Fix-, Refactor- und Style-Commits.
+In gewissen Commits wurden KI-generierte Änderungen automatisch committed. Diese wurden über Build-Tests durch die KI validiert und jeweils manuell vor dem Pushen geprüft. Danach wurden allfällige Fehler wieder mittels ´fix Commits´ behoben.
 
 ## 6. KI-Deklaration
 
@@ -687,4 +659,44 @@ KI war hilfreich, um Implementierungsarbeiten schneller umzusetzen, Bugs systema
 npm run dev
 npm run build
 npm run preview
+```
+### Lokale Installation:
+
+```bash
+npm install
+```
+
+- **Umgebungsvariablen:**
+
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DB=travel-tracker
+COOKIE_NAME=sessionId
+SESSION_DAYS=30
+```
+
+Alternativ akzeptiert die MongoDB-Verbindung auch `DB_URI`, `DB_URL` oder `DB_NAME`.
+
+- **Entwicklung starten:**
+
+```bash
+npm run dev
+```
+
+Unter Windows kann auch verwendet werden:
+
+```bash
+npm.cmd run dev
+```
+
+- **Build prüfen:**
+
+```bash
+npm run build
+```
+
+Unter Windows:
+
+```bash
+npm.cmd run build
 ```
