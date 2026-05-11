@@ -10,7 +10,6 @@
 		"prepare": "svelte-kit sync || echo ''"
 	},
 	"dependencies": {
-		"@sveltejs/adapter-netlify": "^6.0.4",
 		"argon2": "^0.30.0",
 		"cookie": "^0.6.0",
 		"d3-geo": "^3.0.2",
@@ -22,7 +21,7 @@
 		"zod": "^3.23.2"
 	},
 	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/adapter-netlify": "^6.0.4",
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tsconfig/svelte": "^1.0.11",

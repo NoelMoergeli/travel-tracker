@@ -554,10 +554,10 @@ interface TripPhoto {
   - Fotos: erlaubt sind `image/jpeg`, `image/png` und `image/webp`; maximal 2 MB pro Foto; maximal 10 Fotos pro Reise; Caption maximal 160 Zeichen.
 
 - **Deployment:**
-  - Die Anwendung ist mit `@sveltejs/adapter-auto` für ein kompatibles SvelteKit-Deployment vorbereitet.
-  - `netlify.toml` ist vorhanden und nutzt `npm run build`.
-  - TODO: Produktions- oder Test-Deployment-URL eintragen, sobald die App separat deployed ist.
-  - TODO: Falls Netlify verwendet wird, prüfen, ob das Publish-Verzeichnis für die verwendete SvelteKit-Adapter-Ausgabe korrekt ist.
+  - Die Anwendung verwendet `@sveltejs/adapter-netlify` und ist gezielt für Netlify konfiguriert.
+  - `svelte.config.js` konfiguriert den Netlify-Adapter mit `edge: false` und `split: false`.
+  - `netlify.toml` ist vorhanden, nutzt `npm run build` und veröffentlicht das Verzeichnis `build`.
+  - Produktions-URL: https://noels-travel-tracker.netlify.app/
 
 - **Besondere Entscheidungen:**
   - Sessions werden serverseitig in MongoDB gespeichert und per HTTP-only Cookie referenziert. Das ist für den Prototyp einfacher als OAuth und trotzdem klar vom Frontend getrennt.
