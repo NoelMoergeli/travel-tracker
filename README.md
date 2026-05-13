@@ -588,6 +588,15 @@ interface TripPhoto {
 - **Referenz:** Statistics-Seite unter `/statistics`.
 - **Aus Evaluation abgeleitet?:** Nein, geplante Erweiterung.
 
+### 4.2 Zoombare Weltkarte
+- **Beschreibung & Nutzen:** Die Weltkarte im Dashboard wurde um Zoom- und Pan-Funktionen erweitert. Benutzer können innerhalb der Kartenkomponente hinein- und herauszoomen, die Karte per Drag verschieben und die Ansicht zurücksetzen. Dadurch lassen sich kleinere Länder und Regionen besser betrachten, ohne dass sich das restliche Dashboard, die Sidebar oder die Navbar mitbewegen.
+- **Wo umgesetzt:**
+  - **Frontend:** Die bestehende Komponente `src/lib/components/WorldMap.svelte` wurde erweitert. Der Zoom- und Pan-Zustand wird direkt in der Komponente verwaltet, auf die innere SVG-Gruppe angewendet und durch den Kartencontainer begrenzt.
+  - **Interaktion:** Mausrad/Trackpad steuern den Zoom, Drag steuert das Verschieben der Karte. Zusätzlich gibt es `+`, `-` und `Reset`-Buttons innerhalb der Karte.
+  - **Bestehendes Verhalten:** Länder-Markierungen, Hover-Tooltip und Klick-Auswahl bleiben erhalten.
+- **Referenz:** Dashboard-Weltkarte unter `/dashboard`.
+- **Aus Evaluation abgeleitet?:** Nein, geplante Erweiterung.
+
 ## 5. Projektorganisation
 
 ### Repository & Struktur:
