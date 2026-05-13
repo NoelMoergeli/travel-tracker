@@ -196,6 +196,19 @@ export async function loadTripForUser(userId: string, tripId: string): Promise<P
 	return trip ? tripToPublic(trip) : null;
 }
 
+export async function loadTripsForUser(userId: string): Promise<PublicTrip[]> {
+	if (!ObjectId.isValid(userId)) return [];
+
+	const db = await getDb();
+	const trips = await db
+		.collection<Trip>(TRIPS_COLLECTION)
+		.find({ userId: new ObjectId(userId) })
+		.sort({ dateFrom: -1, createdAt: -1 })
+		.toArray();
+
+	return trips.map(tripToPublic);
+}
+
 export async function createTrip(userId: string, formData: FormData): Promise<void> {
 	const values = tripValuesFromForm(formData);
 	const result = TripFormSchema.safeParse(values);

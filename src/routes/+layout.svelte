@@ -22,6 +22,7 @@
 				{#if data.user}
 					<a class="nav-link" href="/trip/new">Add Trip</a>
 					<a class="nav-link" href="/dashboard">Dashboard</a>
+					<a class="nav-link" href="/statistics">Statistics</a>
 					<form method="POST" action="/logout">
 						<button class="button button-secondary" type="submit">Log out</button>
 					</form>
