@@ -10,6 +10,14 @@ export interface TripPhoto {
 	uploadedAt: Date;
 }
 
+export interface TripCoordinates {
+	latitude: number;
+	longitude: number;
+	source: 'nominatim';
+	query: string;
+	updatedAt: Date;
+}
+
 export interface Trip {
 	_id?: ObjectId;
 	userId: ObjectId;
@@ -19,6 +27,10 @@ export interface Trip {
 	dateTo?: string;
 	notes?: string;
 	photos?: TripPhoto[];
+	coordinates?: TripCoordinates;
+	geocodingStatus?: 'found' | 'not_found' | 'error';
+	geocodingQuery?: string;
+	geocodedAt?: Date;
 	createdAt?: Date;
 	updatedAt?: Date;
 }

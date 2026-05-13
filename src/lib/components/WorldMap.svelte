@@ -3,6 +3,7 @@
 	import { geoMercator, geoPath } from 'd3-geo';
 	import { feature } from 'topojson-client';
 	import { getCountryCode } from '$lib/countries';
+	import type { PublicTrip } from '$lib/models/public';
 
 	interface CountryFeature {
 		id: string | number;
@@ -22,6 +23,7 @@
 
 	interface Props {
 		visited?: string[];
+		trips?: PublicTrip[];
 		selected?: string | null;
 		width?: number;
 		height?: number;
@@ -30,6 +32,7 @@
 
 	let {
 		visited = [],
+		trips = [],
 		selected = null,
 		width = 920,
 		height = 520,
@@ -53,6 +56,21 @@
 	const projection = $derived(geoMercator().scale(width / 6.7).translate([width / 2, height / 1.62]));
 	const path = $derived(geoPath(projection));
 	const mapTransform = $derived(`translate(${pan.x} ${pan.y}) scale(${zoom})`);
+	const tripPins = $derived.by(() =>
+		trips
+			.map((trip) => {
+				if (!trip.coordinates) return null;
+				const projected = projection([trip.coordinates.longitude, trip.coordinates.latitude]);
+				if (!projected) return null;
+
+				return {
+					trip,
+					x: projected[0],
+					y: projected[1]
+				};
+			})
+			.filter((pin): pin is { trip: PublicTrip; x: number; y: number } => Boolean(pin))
+	);
 
 	onMount(async () => {
 		try {
@@ -89,6 +107,11 @@
 		if (suppressCountryClick) return;
 		if (!country.code) return;
 		onSelectCountry?.({ code: country.code, name: country.name });
+	}
+
+	function selectTripPin(trip: PublicTrip): void {
+		if (suppressCountryClick) return;
+		onSelectCountry?.({ code: trip.countryCode, name: trip.countryName });
 	}
 
 	function clamp(value: number, min: number, max: number): number {
@@ -156,15 +179,14 @@
 		const point = pointFromEvent(event);
 		if (!point) return;
 
-		isDragging = true;
+		isDragging = false;
 		lastPointer = point;
 		dragDistance = 0;
 		activePointerId = event.pointerId;
-		svgElement?.setPointerCapture(event.pointerId);
 	}
 
 	function movePan(event: PointerEvent): void {
-		if (!isDragging || activePointerId !== event.pointerId || !lastPointer) return;
+		if (activePointerId !== event.pointerId || !lastPointer) return;
 
 		const point = pointFromEvent(event);
 		if (!point) return;
@@ -173,11 +195,16 @@
 		const deltaY = point.y - lastPointer.y;
 		dragDistance += Math.hypot(deltaX, deltaY);
 
-		if (dragDistance > 4) {
+		if (dragDistance > 8 && !isDragging) {
+			isDragging = true;
 			suppressCountryClick = true;
+			svgElement?.setPointerCapture(event.pointerId);
 		}
 
-		pan = clampPan({ x: pan.x + deltaX, y: pan.y + deltaY });
+		if (isDragging) {
+			pan = clampPan({ x: pan.x + deltaX, y: pan.y + deltaY });
+		}
+
 		lastPointer = point;
 	}
 
@@ -187,7 +214,9 @@
 		isDragging = false;
 		lastPointer = null;
 		activePointerId = null;
-		svgElement?.releasePointerCapture(event.pointerId);
+		if (svgElement?.hasPointerCapture(event.pointerId)) {
+			svgElement.releasePointerCapture(event.pointerId);
+		}
 
 		window.setTimeout(() => {
 			suppressCountryClick = false;
@@ -241,6 +270,27 @@
 							onmouseleave={() => (hovered = null)}
 						/>
 					{/if}
+				{/each}
+				{#each tripPins as pin (pin.trip.id)}
+					<g
+						class="trip-pin"
+						transform={`translate(${pin.x} ${pin.y})`}
+						tabindex="0"
+						role="button"
+						aria-label={`Trip to ${pin.trip.placeName}, ${pin.trip.countryName}`}
+						onclick={() => selectTripPin(pin.trip)}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') selectTripPin(pin.trip);
+						}}
+						onmouseenter={() => (hovered = `${pin.trip.placeName}, ${pin.trip.countryName}`)}
+						onmouseleave={() => (hovered = null)}
+						onfocus={() => (hovered = `${pin.trip.placeName}, ${pin.trip.countryName}`)}
+						onblur={() => (hovered = null)}
+					>
+						<circle class="trip-pin-shadow" r={9 / zoom}></circle>
+						<circle class="trip-pin-dot" r={5.2 / zoom}></circle>
+						<circle class="trip-pin-core" r={2.1 / zoom}></circle>
+					</g>
 				{/each}
 			</g>
 		</svg>
@@ -304,6 +354,31 @@
 	path.selected {
 		stroke: #14213d;
 		stroke-width: 1.2;
+	}
+
+	.trip-pin {
+		outline: none;
+		pointer-events: auto;
+	}
+
+	.trip-pin-shadow {
+		fill: rgba(20, 33, 61, 0.22);
+	}
+
+	.trip-pin-dot {
+		fill: #ffb703;
+		stroke: #14213d;
+		stroke-width: 1.7;
+		vector-effect: non-scaling-stroke;
+	}
+
+	.trip-pin-core {
+		fill: #14213d;
+	}
+
+	.trip-pin:hover .trip-pin-dot,
+	.trip-pin:focus-visible .trip-pin-dot {
+		fill: #8ecae6;
 	}
 
 	.tooltip {

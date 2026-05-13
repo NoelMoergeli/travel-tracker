@@ -8,6 +8,11 @@ export interface PublicTripPhoto {
 	uploadedAt: string;
 }
 
+export interface PublicTripCoordinates {
+	latitude: number;
+	longitude: number;
+}
+
 export interface PublicTrip {
 	id: string;
 	countryCode: string;
@@ -17,4 +22,5 @@ export interface PublicTrip {
 	dateTo: string;
 	notes: string;
 	photos: PublicTripPhoto[];
+	coordinates: PublicTripCoordinates | null;
 }

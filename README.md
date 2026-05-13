@@ -510,10 +510,18 @@ Fasst die technische Realisierung zusammen.
   - `src/lib/countries/index.ts`: Länderoptionen, Ländernamen und Mapping von Kartennamen auf ISO-Codes.
 
 - **Daten & Schnittstellen:**
-  - **Collections:** `users` speichert Benutzerkonto und Passwort-Hash, `sessions` speichert serverseitige Sessions, `trips` speichert Reisen inklusive optionaler Fotos.
+  - **Collections:** `users` speichert Benutzerkonto und Passwort-Hash, `sessions` speichert serverseitige Sessions, `trips` speichert Reisen inklusive optionaler Fotos, Koordinaten und Geocoding-Status.
   - **Trip-Dokument:**
 
 ```ts
+interface TripCoordinates {
+  latitude: number;
+  longitude: number;
+  source: 'nominatim';
+  query: string;
+  updatedAt: Date;
+}
+
 interface Trip {
   _id?: ObjectId;
   userId: ObjectId;
@@ -523,6 +531,10 @@ interface Trip {
   dateTo?: string;
   notes?: string;
   photos?: TripPhoto[];
+  coordinates?: TripCoordinates;
+  geocodingStatus?: 'found' | 'not_found' | 'error';
+  geocodingQuery?: string;
+  geocodedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -543,9 +555,11 @@ interface TripPhoto {
 ```
 
   - Fotos werden als `TripPhoto` im `photos`-Array gespeichert. Gerendert wird über `data:{mimeType};base64,{data}`.
+  - Koordinaten werden als `TripCoordinates` direkt im Trip-Dokument gespeichert. `geocodingStatus`, `geocodingQuery` und `geocodedAt` verhindern unnötige wiederholte API-Anfragen und dokumentieren Fehlerfälle.
   - Alle Trip-Abfragen filtern nach `userId`. Dadurch kann ein Benutzer nur eigene Reisen laden, bearbeiten und löschen.
   - Formular-Submit erfolgt über SvelteKit Form Actions. Fehler werden mit `fail(...)` an die Seite zurückgegeben, inklusive Feldfehlern, Formwerten und Foto-Zwischenstand.
   - Die Weltkarte lädt ihre TopoJSON-Daten clientseitig von `https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json`.
+  - Für Trip-Pins wird serverseitig OpenStreetMap Nominatim über `https://nominatim.openstreetmap.org/search` genutzt. Die Anfrage wird aus Ort/Stadt und Land gebildet, auf einen Request pro Sekunde begrenzt und mit einem identifizierenden User-Agent gesendet. Gefundene Koordinaten werden in MongoDB gecacht.
 
 - **Validierung:**
   - Registrierung: Benutzername mindestens 3 Zeichen, Passwort mindestens 6 Zeichen, Benutzername muss eindeutig sein.
@@ -594,6 +608,16 @@ interface TripPhoto {
   - **Frontend:** Die bestehende Komponente `src/lib/components/WorldMap.svelte` wurde erweitert. Der Zoom- und Pan-Zustand wird direkt in der Komponente verwaltet, auf die innere SVG-Gruppe angewendet und durch den Kartencontainer begrenzt.
   - **Interaktion:** Mausrad/Trackpad steuern den Zoom, Drag steuert das Verschieben der Karte. Zusätzlich gibt es `+`, `-` und `Reset`-Buttons innerhalb der Karte.
   - **Bestehendes Verhalten:** Länder-Markierungen, Hover-Tooltip und Klick-Auswahl bleiben erhalten.
+- **Referenz:** Dashboard-Weltkarte unter `/dashboard`.
+- **Aus Evaluation abgeleitet?:** Nein, geplante Erweiterung.
+
+### 4.3 Trip-Pins auf der Weltkarte
+- **Beschreibung & Nutzen:** Für gespeicherte Reisen werden automatisch geografische Koordinaten ermittelt und als Pins auf der Weltkarte angezeigt. Dadurch sieht der Benutzer nicht nur, welche Länder besucht wurden, sondern auch an welchen konkreten Orten oder Städten Trips erfasst wurden.
+- **Wo umgesetzt:**
+  - **Frontend:** Die bestehende Komponente `src/lib/components/WorldMap.svelte` rendert zusätzliche Marker über der Karte. Die Pins verwenden dieselbe Projektion wie die Länder und bewegen sich beim Zoomen und Verschieben korrekt mit.
+  - **Backend:** In `src/lib/server/geocoding.ts` wurde serverseitiges Geocoding über OpenStreetMap Nominatim ergänzt. Die Funktionen in `src/lib/server/trips.ts` berechnen Koordinaten beim Erstellen und Bearbeiten eines Trips sowie für ältere Trips beim Laden des Dashboards.
+  - **Datenbank:** Das Trip-Modell in `src/lib/models/trip.ts` wurde um Koordinaten und Geocoding-Status erweitert. Gefundene Koordinaten werden im Trip-Dokument gespeichert, damit nicht bei jedem Laden erneut dieselbe API-Anfrage ausgeführt wird.
+  - **Fehlerbehandlung:** Wenn ein Ort nicht gefunden wird oder die API temporär fehlschlägt, bleibt die App stabil. Nicht gefundene Orte werden nicht unnötig erneut abgefragt, API-Fehler können später erneut versucht werden.
 - **Referenz:** Dashboard-Weltkarte unter `/dashboard`.
 - **Aus Evaluation abgeleitet?:** Nein, geplante Erweiterung.
 

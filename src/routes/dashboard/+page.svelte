@@ -105,6 +105,7 @@
 		<section class="map-panel" aria-label="World map">
 			<WorldMap
 				{visited}
+				trips={data.trips}
 				selected={selectedCountry?.code}
 				onSelectCountry={(country) => selectCountry(country)}
 			/>

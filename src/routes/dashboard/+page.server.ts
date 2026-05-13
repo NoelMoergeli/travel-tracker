@@ -6,7 +6,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) throw redirect(302, '/login');
 
 	return {
-		trips: await loadTripsForUser(locals.user.id)
+		trips: await loadTripsForUser(locals.user.id, { geocodeMissing: true })
 	};
 };
 
